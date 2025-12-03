@@ -13,6 +13,8 @@ class TreatmentParametersPage extends StatelessWidget {
   final TextEditingController heparinRateController;
   final TextEditingController needleSizeController;
   final TextEditingController tmpController;
+  final VoidCallback? onSave;
+  final VoidCallback? onComplete;
 
   const TreatmentParametersPage({
     super.key,
@@ -27,6 +29,8 @@ class TreatmentParametersPage extends StatelessWidget {
     required this.heparinRateController,
     required this.needleSizeController,
     required this.tmpController,
+    this.onSave,
+    this.onComplete,
   });
 
   @override
@@ -93,6 +97,7 @@ class TreatmentParametersPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
+          actionButtons(context, onSave: onSave, onComplete: onComplete),
         ],
       ),
     );

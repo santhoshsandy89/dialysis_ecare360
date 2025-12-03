@@ -231,10 +231,10 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
               ],
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.save, color: Colors.white),
-                onPressed: _saveSessionData,
-              ),
+              // IconButton(
+              //   icon: const Icon(Icons.save, color: Colors.white),
+              //   onPressed: _saveSessionData,
+              // ),
             ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48),
@@ -280,6 +280,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
                 postTempController: _postTempController,
                 preSpo2Controller: _preSpo2Controller,
                 postSpo2Controller: _postSpo2Controller,
+                onSave: _saveSessionData,
+                onComplete: _saveSessionData,
               ),
               TreatmentParametersPage(
                 actualBloodFlowRateController: _actualBloodFlowRateController,
@@ -293,6 +295,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
                 heparinRateController: _heparinRateController,
                 needleSizeController: _needleSizeController,
                 tmpController: _tmpController,
+                onSave: _saveSessionData,
+                onComplete: _saveSessionData,
               ),
               LaboratoryValuesPage(
                 preBunController: _preBunController,
@@ -303,6 +307,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
                 postCreatinineController: _postCreatinineController,
                 postPotassiumController: _postPotassiumController,
                 postSodiumController: _postSodiumController,
+                onSave: _saveSessionData,
+                onComplete: _saveSessionData,
               ),
               ClinicalNotesPage(
                 machineAlarmsController: _machineAlarmsController,
@@ -310,6 +316,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
                 patientToleranceController: _patientToleranceController,
                 symptomsDuringTreatmentController: _symptomsDuringTreatmentController,
                 complicationsDetailsController: _complicationsDetailsController,
+                onSave: _saveSessionData,
+                onComplete: _saveSessionData,
               ),
             ],
           ),

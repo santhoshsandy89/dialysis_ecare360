@@ -7,6 +7,8 @@ class ClinicalNotesPage extends StatelessWidget {
   final TextEditingController patientToleranceController;
   final TextEditingController symptomsDuringTreatmentController;
   final TextEditingController complicationsDetailsController;
+  final VoidCallback? onSave;
+  final VoidCallback? onComplete;
 
   const ClinicalNotesPage({
     super.key,
@@ -15,6 +17,8 @@ class ClinicalNotesPage extends StatelessWidget {
     required this.patientToleranceController,
     required this.symptomsDuringTreatmentController,
     required this.complicationsDetailsController,
+    this.onSave,
+    this.onComplete,
   });
 
   @override
@@ -95,6 +99,7 @@ class ClinicalNotesPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
+          actionButtons(context, onSave: onSave, onComplete: onComplete),
         ],
       ),
     );

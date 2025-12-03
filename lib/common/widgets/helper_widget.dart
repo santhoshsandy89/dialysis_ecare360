@@ -70,7 +70,7 @@ Widget sectionCard(
   );
 }
 
-Widget actionButtons(BuildContext context) {
+Widget actionButtons(BuildContext context, {VoidCallback? onSave, VoidCallback? onComplete}) {
   return Padding(
     padding: const EdgeInsets.only(top: 20, bottom: 40),
     child: Row(
@@ -84,7 +84,7 @@ Widget actionButtons(BuildContext context) {
         const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: onSave, // Use the provided onSave callback
             child: const Text("Save Progress"),
           ),
         ),
@@ -92,7 +92,7 @@ Widget actionButtons(BuildContext context) {
         Expanded(
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: () {},
+            onPressed: onComplete, // Use the provided onComplete callback
             child: const Text("Complete Session"),
           ),
         ),

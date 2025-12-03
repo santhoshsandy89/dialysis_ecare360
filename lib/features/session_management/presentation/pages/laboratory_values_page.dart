@@ -10,6 +10,8 @@ class LaboratoryValuesPage extends StatelessWidget {
   final TextEditingController postCreatinineController;
   final TextEditingController postPotassiumController;
   final TextEditingController postSodiumController;
+  final VoidCallback? onSave;
+  final VoidCallback? onComplete;
 
   const LaboratoryValuesPage({
     super.key,
@@ -21,6 +23,8 @@ class LaboratoryValuesPage extends StatelessWidget {
     required this.postCreatinineController,
     required this.postPotassiumController,
     required this.postSodiumController,
+    this.onSave,
+    this.onComplete,
   });
 
   @override
@@ -53,6 +57,7 @@ class LaboratoryValuesPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
+          actionButtons(context, onSave: onSave, onComplete: onComplete),
         ],
       ),
     );
