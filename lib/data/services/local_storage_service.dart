@@ -4,6 +4,7 @@ import 'package:ecare360/data/models/bed_status_model.dart'; // Import BedStatus
 import 'package:ecare360/data/models/doctor_model.dart';
 import 'package:ecare360/data/models/patient_id_model.dart';
 import 'package:ecare360/data/models/patient_model.dart';
+import 'package:ecare360/data/models/session_data_model.dart';
 import 'package:ecare360/data/models/treatment_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -198,6 +199,7 @@ class LocalStorageService {
   static const String _keyEmail = "saved_email";
   static const String _keyPassword = "saved_password";
   static const String _keyRememberMe = "remember_me";
+  static const String _sessionDataPrefix = 'ecare360_session_data_';
 
   static Future<void> savePatientsIdList(List<PatientIDModel> patients) async {
     final prefs = await _instance;
@@ -396,5 +398,29 @@ class LocalStorageService {
     await prefs.remove(_keyEmail);
     await prefs.remove(_keyPassword);
     await prefs.remove(_keyRememberMe);
+  }
+
+  static Future<void> saveSessionData(SessionData sessionData) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_sessionDataPrefix${sessionData.patientId}';
+    await prefs.setString(key, sessionData.toJson());
+    AppLogger.debug('Session data saved for patient: ${sessionData.patientId}');
+  }
+
+  static Future<SessionData?> fetchSessionData(String patientId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_sessionDataPrefix$patientId';
+    final String? sessionDataJson = prefs.getString(key);
+    if (sessionDataJson == null) {
+      return null;
+    }
+    AppLogger.debug('Session data retrieved for patient: $patientId');
+    return SessionData.fromJson(sessionDataJson);
+  }
+
+  static Future<bool> hasSessionData(String patientId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_sessionDataPrefix$patientId';
+    return prefs.containsKey(key);
   }
 }

@@ -2,6 +2,7 @@ import 'package:ecare360/core/widgets/custom_button.dart';
 import 'package:ecare360/core/widgets/custom_text_field.dart';
 import 'package:ecare360/data/models/patient_model.dart';
 import 'package:ecare360/data/models/treatment_model.dart';
+import 'package:ecare360/data/services/local_storage_service.dart';
 import 'package:ecare360/features/home/presentation/providers/local_storage_controller.dart';
 import 'package:ecare360/features/home/presentation/providers/patient_id_provider.dart';
 import 'package:ecare360/features/schedule_treatment/data/models/patient.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../session_management/presentation/pages/report_viewer_screen.dart';
 import '../providers/schedule_treatment_provider.dart';
 
 enum TreatmentType { Hemodialysis, PeritonealDialysis }
@@ -720,22 +722,7 @@ class _ScheduleTreatmentSectionState
                             .read(scheduleTreatmentProvider.notifier)
                             .removeScheduledTreatment(i);
                       },
-                      onStartSession: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => SessionManagementScreen(
-                              patient: patientListController.first,
-                              treatmentType:
-                                  "Hemodialysis", // or dynamically pass schedule.treatmentType
-                            ),
-                          ),
-                        );
-                        ref
-                            .read(scheduleTreatmentProvider.notifier)
-                            .startSession(
-                                patientListController[i], "Hemodialysis");
-                      },
+                      patientId: scheduledListController[i].patient.mrnNo,
                     ),
                     if (i != scheduledListController.length - 1)
                       const Divider(height: 24),
@@ -795,99 +782,133 @@ class _ScheduleTreatmentSectionState
   }
 }
 
-class _ScheduledTreatmentItem extends StatelessWidget {
+class _ScheduledTreatmentItem extends ConsumerWidget {
   final Treatment treatment;
   final VoidCallback onDelete;
-  final VoidCallback onStartSession;
+  final String patientId;
 
   const _ScheduledTreatmentItem({
     required this.treatment,
     required this.onDelete,
-    required this.onStartSession,
+    required this.patientId,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final formattedDate =
         DateFormat('dd MMM yyyy').format(treatment.scheduledDate);
     final formattedTime = treatment.scheduledTime.format(context);
-    return Row(
-      children: [
-        // Avatar
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: const Icon(Icons.medical_services, color: Colors.blue),
-        ),
-        const SizedBox(width: 12),
 
-        // Details
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                treatment.patient.firstName,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                "${treatment.treatmentType.name} • $formattedDate $formattedTime",
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        ),
-        Column(
+    return FutureBuilder<bool>(
+      future: LocalStorageService.hasSessionData(patientId),
+      builder: (context, snapshot) {
+        final bool hasData = snapshot.data ?? false;
+        return Row(
           children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                const buttonWidth = 140.0;
-
-                return Column(
-                  children: [
-                    SizedBox(
-                      width: buttonWidth,
-                      child: ElevatedButton.icon(
-                        onPressed: onStartSession,
-                        icon: const Icon(Icons.play_arrow, color: Colors.white),
-                        label: const Text("Start Session"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          textStyle: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: buttonWidth,
-                      child: ElevatedButton.icon(
-                        onPressed: onDelete,
-                        icon: const Icon(Icons.delete, color: Colors.white),
-                        label: const Text("Delete"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          textStyle: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
+            // Avatar
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Icon(Icons.medical_services, color: Colors.blue),
             ),
+            const SizedBox(width: 12),
+
+            // Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    treatment.patient.firstName,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "${treatment.treatmentType.name} • $formattedDate $formattedTime",
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              children: [
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    const buttonWidth = 140.0;
+
+                    return Column(
+                      children: [
+                        SizedBox(
+                          width: buttonWidth,
+                          child: ElevatedButton.icon(
+                            onPressed: hasData
+                                ? () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_)
+                                            => ReportViewerScreen(patientId: patientId),
+                                      ),
+                                    );
+                                  }
+                                : () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => SessionManagementScreen(
+                                          patient: treatment.patient,
+                                          treatmentType: treatment
+                                              .treatmentType.name, // or dynamically pass schedule.treatmentType
+                                        ),
+                                      ),
+                                    );
+                                    ref
+                                        .read(scheduleTreatmentProvider.notifier)
+                                        .startSession(treatment.patient,
+                                            treatment.treatmentType.name);
+                                  },
+                            icon: Icon(
+                                hasData ? Icons.visibility : Icons.play_arrow,
+                                color: Colors.white),
+                            label: Text(hasData ? "View Report" : "Start Session"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: hasData ? Colors.blue : Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              textStyle: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: buttonWidth,
+                          child: ElevatedButton.icon(
+                            onPressed: onDelete,
+                            icon: const Icon(Icons.delete, color: Colors.white),
+                            label: const Text("Delete"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              textStyle: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            )
           ],
-        )
-      ],
+        );
+      },
     );
   }
 }

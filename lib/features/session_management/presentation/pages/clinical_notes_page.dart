@@ -2,7 +2,20 @@ import 'package:ecare360/common/widgets/helper_widget.dart';
 import 'package:flutter/material.dart';
 
 class ClinicalNotesPage extends StatelessWidget {
-  const ClinicalNotesPage({super.key});
+  final TextEditingController machineAlarmsController;
+  final TextEditingController nursingInterventionsController;
+  final TextEditingController patientToleranceController;
+  final TextEditingController symptomsDuringTreatmentController;
+  final TextEditingController complicationsDetailsController;
+
+  const ClinicalNotesPage({
+    super.key,
+    required this.machineAlarmsController,
+    required this.nursingInterventionsController,
+    required this.patientToleranceController,
+    required this.symptomsDuringTreatmentController,
+    required this.complicationsDetailsController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,18 +35,20 @@ class ClinicalNotesPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const TextField(
+                  TextField(
+                    controller: machineAlarmsController,
                     maxLines: 3,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: "Machine Alarms",
                       hintText: "Document any machine alarms...",
                       border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const TextField(
+                  TextField(
+                    controller: nursingInterventionsController,
                     maxLines: 3,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: "Nursing Interventions",
                       hintText: "Document interventions performed...",
                       border: OutlineInputBorder(),
@@ -41,6 +56,7 @@ class ClinicalNotesPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField(
+                    value: patientToleranceController.text.isNotEmpty ? patientToleranceController.text : null,
                     decoration: const InputDecoration(
                       labelText: "Patient Tolerance",
                       border: OutlineInputBorder(),
@@ -48,21 +64,27 @@ class ClinicalNotesPage extends StatelessWidget {
                     items: ["Good", "Moderate", "Poor"]
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (_) {},
+                    onChanged: (value) {
+                      if (value != null) {
+                        patientToleranceController.text = value;
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
-                  const TextField(
+                  TextField(
+                    controller: symptomsDuringTreatmentController,
                     maxLines: 3,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: "Symptoms During Treatment",
                       hintText: "Document any symptoms reported...",
                       border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const TextField(
+                  TextField(
+                    controller: complicationsDetailsController,
                     maxLines: 3,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: "Complications Details",
                       hintText: "Document any complications...",
                       border: OutlineInputBorder(),
@@ -73,7 +95,6 @@ class ClinicalNotesPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          actionButtons(context),
         ],
       ),
     );
