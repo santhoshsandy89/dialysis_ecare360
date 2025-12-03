@@ -1,31 +1,33 @@
+import 'package:ecare360/data/models/patient_model.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 
 /// Upcoming appointments widget
-class UpcomingAppointments extends StatelessWidget {
-  const UpcomingAppointments({super.key});
+class PatientsList extends StatelessWidget {
+  final List<PatientModel> patients;
+
+  const PatientsList({super.key, required this.patients});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // HEADER
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Upcoming Appointments',
+              'Patients',
               style: AppTextStyles.titleLarge.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimaryLight,
               ),
             ),
             TextButton(
-              onPressed: () {
-                // Navigate to all appointments
-              },
+              onPressed: () {},
               child: Text(
                 'View All',
                 style: AppTextStyles.labelLarge.copyWith(
@@ -37,6 +39,8 @@ class UpcomingAppointments extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
+
+        // CARD
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -50,64 +54,42 @@ class UpcomingAppointments extends StatelessWidget {
               ),
             ],
           ),
-          child: const Column(
-            children: [
-              _AppointmentItem(
-                doctorName: 'Dr. Sarah Johnson',
-                specialty: 'Cardiologist',
-                date: 'Today',
-                time: '2:30 PM',
-                status: 'Confirmed',
-                statusColor: AppColors.success,
-              ),
-              Divider(height: 24),
-              _AppointmentItem(
-                doctorName: 'Dr. Michael Chen',
-                specialty: 'Dermatologist',
-                date: 'Tomorrow',
-                time: '10:00 AM',
-                status: 'Pending',
-                statusColor: AppColors.warning,
-              ),
-              Divider(height: 24),
-              _AppointmentItem(
-                doctorName: 'Dr. Emily Davis',
-                specialty: 'General Practitioner',
-                date: 'Dec 15',
-                time: '3:45 PM',
-                status: 'Confirmed',
-                statusColor: AppColors.success,
-              ),
-            ],
-          ),
+          child: patients.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      "No Patients Added",
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ),
+                )
+              : Column(
+                  children: [
+                    for (int i = 0; i < patients.length; i++) ...[
+                      PatientItem(patient: patients[i]),
+                      if (i != patients.length - 1) const Divider(height: 24),
+                    ],
+                  ],
+                ),
         ),
       ],
     );
   }
 }
 
-class _AppointmentItem extends StatelessWidget {
-  final String doctorName;
-  final String specialty;
-  final String date;
-  final String time;
-  final String status;
-  final Color statusColor;
+class PatientItem extends StatelessWidget {
+  final PatientModel patient;
 
-  const _AppointmentItem({
-    required this.doctorName,
-    required this.specialty,
-    required this.date,
-    required this.time,
-    required this.status,
-    required this.statusColor,
-  });
+  const PatientItem({super.key, required this.patient});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Doctor Avatar
+        // Avatar
         Container(
           width: 48,
           height: 48,
@@ -121,75 +103,34 @@ class _AppointmentItem extends StatelessWidget {
             size: 24,
           ),
         ),
-
         const SizedBox(width: 12),
 
-        // Appointment Details
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                doctorName,
+                "${patient.firstName} ${patient.lastName}",
                 style: AppTextStyles.titleMedium.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimaryLight,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(
-                specialty,
-                style: AppTextStyles.bodyMedium.copyWith(
+                "MRN: ${patient.mrnNo}",
+                style: AppTextStyles.bodySmall.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),
               ),
               const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.calendar_today,
-                    size: 14,
-                    color: AppColors.textSecondaryLight,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    date,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondaryLight,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Icon(
-                    Icons.access_time,
-                    size: 14,
-                    color: AppColors.textSecondaryLight,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    time,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondaryLight,
-                    ),
-                  ),
-                ],
+              Text(
+                "DOB: ${patient.dob}",
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textSecondaryLight,
+                ),
               ),
             ],
-          ),
-        ),
-
-        // Status Badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            status,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: statusColor,
-              fontWeight: FontWeight.w600,
-            ),
           ),
         ),
       ],

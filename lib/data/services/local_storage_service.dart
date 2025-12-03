@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:ecare360/data/models/bed_status_model.dart'; // Import BedStatusModel
 import 'package:ecare360/data/models/doctor_model.dart';
 import 'package:ecare360/data/models/patient_model.dart';
+import 'package:ecare360/data/models/treatment_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/utils/logger.dart';
@@ -11,6 +12,8 @@ import '../../core/utils/logger.dart';
 class LocalStorageService {
   static SharedPreferences? _prefs;
   static const String _prefix = 'ecare360_';
+  static const String patientsKey = "patients";
+  static const String treatmentsKey = "treatments";
 
   /// Initialize the service
   static Future<void> init() async {
@@ -263,6 +266,51 @@ class LocalStorageService {
       AppLogger.error('Failed to clear storage', e);
       return false;
     }
+  }
+
+  // ---------- PATIENTS ----------
+  static Future<List<PatientModel>> getPatients() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getStringList(patientsKey) ?? [];
+    return data.map((e) => PatientModel.fromJson(jsonDecode(e))).toList();
+  }
+
+  static Future<void> savePatient(PatientModel patient) async {
+    final prefs = await SharedPreferences.getInstance();
+    final existing = prefs.getStringList(patientsKey) ?? [];
+    existing.add(jsonEncode(patient.toJson()));
+    await prefs.setStringList(patientsKey, existing);
+  }
+
+  // ---------- TREATMENTS ----------
+  static Future<List<Treatment>> getTreatments() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getStringList(treatmentsKey) ?? [];
+    return data
+        .map((e) {
+          try {
+            final Map<String, dynamic> jsonMap = jsonDecode(e);
+            if (jsonMap['patient'] is String) {
+              jsonMap['patient'] = jsonDecode(jsonMap['patient']);
+            }
+            return Treatment.fromJson(jsonMap);
+          } catch (err) {
+            print("Invalid treatment entry removed: $e");
+            return null;
+          }
+        })
+        .whereType<Treatment>()
+        .toList();
+  }
+
+  static Future<void> saveTreatment(Treatment treatment) async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getStringList(treatmentsKey) ?? [];
+
+    final jsonStr = jsonEncode(treatment.toJson());
+    data.add(jsonStr);
+
+    await prefs.setStringList(treatmentsKey, data);
   }
 
   /// Check if a key exists

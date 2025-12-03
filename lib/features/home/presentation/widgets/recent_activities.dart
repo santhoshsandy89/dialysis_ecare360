@@ -1,30 +1,55 @@
+import 'package:ecare360/data/models/treatment_model.dart';
+import 'package:ecare360/data/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 
 /// Recent activities widget
-class RecentActivities extends StatelessWidget {
-  const RecentActivities({super.key});
+
+class ScheduleTreatmentList extends StatefulWidget {
+  final List<Treatment> treatments;
+
+  const ScheduleTreatmentList({super.key, required this.treatments});
+
+  @override
+  State<ScheduleTreatmentList> createState() => _ScheduleTreatmentListState();
+}
+
+class _ScheduleTreatmentListState extends State<ScheduleTreatmentList> {
+  List<Treatment> treatments = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTreatments();
+  }
+
+  Future<void> _loadTreatments() async {
+    final list = await LocalStorageService.getTreatments();
+    setState(() {
+      treatments = list;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // HEADER
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent Activities',
+              'Treatments',
               style: AppTextStyles.titleLarge.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimaryLight,
               ),
             ),
             TextButton(
-              onPressed: () {
-                // Navigate to all activities
-              },
+              onPressed: () {},
               child: Text(
                 'View All',
                 style: AppTextStyles.labelLarge.copyWith(
@@ -35,122 +60,92 @@ class RecentActivities extends StatelessWidget {
             ),
           ],
         ),
-        
         const SizedBox(height: 16),
-        
+
+        // MAIN CARD
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.surfaceLight,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 color: AppColors.shadowLight,
                 blurRadius: 8,
-                offset: const Offset(0, 2),
+                offset: Offset(0, 2),
               ),
             ],
           ),
-          child: Column(
-            children: [
-              _ActivityItem(
-                icon: Icons.medication,
-                title: 'Medication Reminder',
-                subtitle: 'Take your morning vitamins',
-                time: '2 hours ago',
-                color: AppColors.primary,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              _ActivityItem(
-                icon: Icons.fitness_center,
-                title: 'Exercise Completed',
-                subtitle: '30 minutes of cardio',
-                time: '4 hours ago',
-                color: AppColors.success,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              _ActivityItem(
-                icon: Icons.bloodtype,
-                title: 'Lab Results',
-                subtitle: 'Blood test results available',
-                time: '1 day ago',
-                color: AppColors.warning,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              _ActivityItem(
-                icon: Icons.vaccines,
-                title: 'Vaccination Due',
-                subtitle: 'Annual flu shot reminder',
-                time: '2 days ago',
-                color: AppColors.accent,
-              ),
-            ],
-          ),
+          child: treatments.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      "No Treatments Scheduled",
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ),
+                )
+              : Column(
+                  children: List.generate(treatments.length, (index) {
+                    final t = treatments[index];
+                    return Column(
+                      children: [
+                        TreatmentItem(treatment: t),
+                        if (index != treatments.length - 1)
+                          const Divider(height: 24),
+                      ],
+                    );
+                  }),
+                ),
         ),
       ],
     );
   }
 }
 
-class _ActivityItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String time;
-  final Color color;
+class TreatmentItem extends StatelessWidget {
+  final Treatment treatment;
 
-  const _ActivityItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.time,
-    required this.color,
-  });
+  const TreatmentItem({super.key, required this.treatment});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Activity Icon
+        // Icon for treatment
         Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: AppColors.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Icon(
-            icon,
-            color: color,
+          child: const Icon(
+            Icons.medical_services,
+            color: AppColors.primary,
             size: 20,
           ),
         ),
-        
         const SizedBox(width: 12),
-        
-        // Activity Details
+
+        // Treatment Details
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
+                "${treatment.patient.firstName} ${treatment.patient.lastName}",
                 style: AppTextStyles.titleSmall.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimaryLight,
                 ),
               ),
-              
               const SizedBox(height: 2),
-              
               Text(
-                subtitle,
+                "${treatment.treatmentType.name} • $treatment.scheduledDate ${treatment.scheduledTime.format(context)}",
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),
@@ -158,12 +153,24 @@ class _ActivityItem extends StatelessWidget {
             ],
           ),
         ),
-        
-        // Time
-        Text(
-          time,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondaryLight,
+
+        // Optional status badge
+        // Status badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: treatment.isCompleted
+                ? AppColors.success.withOpacity(0.1)
+                : AppColors.warning.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            treatment.isCompleted ? "Completed" : "Pending",
+            style: AppTextStyles.labelSmall.copyWith(
+              color:
+                  treatment.isCompleted ? AppColors.success : AppColors.warning,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

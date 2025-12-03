@@ -38,8 +38,8 @@ class _CombinedLoginScreenState extends ConsumerState<CombinedLoginScreen> {
     super.initState();
     _loadSavedCredentials();
 
-    /* _emailController.text = "samuel.j@yanthralabs.com";
-    _passwordController.text = "yanthra123";*/
+    _emailController.text = "samuel.j@yanthralabs.com";
+    _passwordController.text = "yanthra123";
   }
 
   @override
@@ -95,7 +95,7 @@ class _CombinedLoginScreenState extends ConsumerState<CombinedLoginScreen> {
         LocalStorageService.clearSavedLogin();
       }
 
-      if (mounted) context.go(AppRoutes.floorSelection);
+      if (mounted) context.go(AppRoutes.home);
     } catch (e) {
       _showError(e.toString().replaceFirst("Exception: ", ""));
     } finally {

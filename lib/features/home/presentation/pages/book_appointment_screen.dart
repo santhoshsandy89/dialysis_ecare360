@@ -431,24 +431,24 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                             _selectedPatientId != null
                                 ? patients
                                     .firstWhere(
-                                        (p) => p.id == _selectedPatientId)
-                                    .username
+                                        (p) => p.mrnNo == _selectedPatientId)
+                                    .firstName
                                 : null,
-                            patients.map((p) => 'Mr. ${p.username}').toList(),
+                            patients.map((p) => 'Mr. ${p.firstName}').toList(),
                             // items
                             (String? newValue) {
                               setState(() {
                                 _selectedPatientId = patients
                                     .firstWhere(
-                                        (p) => 'Mr. ${p.username}' == newValue)
-                                    .id;
+                                        (p) => 'Mr. ${p.firstName}' == newValue)
+                                    .mrnNo;
                               });
                             },
                             true,
                             displayValueMap: patients
                                 .map((p) => {
-                                      'display': 'Mr. ${p.username}',
-                                      'value': p.id
+                                      'display': 'Mr. ${p.firstName}',
+                                      'value': p.mrnNo
                                     })
                                 .toList(),
                           ),
@@ -817,10 +817,10 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
     final doctors = ref.read(doctorProvider);
 
     final selectedPatient =
-        patients.firstWhere((p) => p.id == _selectedPatientId);
+        patients.firstWhere((p) => p.mrnNo == _selectedPatientId);
     final patientName = selectedPatient.firstName.isNotEmpty
         ? selectedPatient.firstName
-        : selectedPatient.username;
+        : selectedPatient.lastName;
 
     final selectedDoctor =
         doctors.firstWhere((d) => d.id == _selectedConsultingDoctorId);

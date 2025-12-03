@@ -1,39 +1,39 @@
 class PatientModel {
-  final String id;
+  final String mrnNo;
   final String firstName;
   final String lastName;
-  final String email;
+  final String dob;
+  final String bloodType;
   final String phone;
-  final String username; // Added username field
+  final String email;
 
   PatientModel({
-    required this.id,
+    required this.mrnNo,
     required this.firstName,
     required this.lastName,
-    required this.email,
+    required this.dob,
+    required this.bloodType,
     required this.phone,
-    required this.username, // Initialize username
+    required this.email,
   });
 
-  factory PatientModel.fromJson(Map<String, dynamic> json) {
-    return PatientModel(
-      id: json['userid']?.toString() ?? '',
-      firstName: json['username'] as String? ?? '',
-      lastName: json['lastName'] as String? ?? '',
-      email: json['email'] as String? ?? '',
-      phone: json['phone'] as String? ?? '',
-      username: json['username'] as String? ?? '', // Parse username
-    );
-  }
+  Map<String, dynamic> toJson() => {
+        'mrnNo': mrnNo,
+        'firstName': firstName,
+        'lastName': lastName,
+        'dob': dob,
+        'bloodType': bloodType,
+        'phone': phone,
+        'email': email,
+      };
 
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'firstName': firstName,
-      'lastName': lastName,
-      'email': email,
-      'phone': phone,
-      'username': username, // Serialize username
-    };
-  }
+  factory PatientModel.fromJson(Map<String, dynamic> json) => PatientModel(
+        mrnNo: json['mrnNo'],
+        firstName: json['firstName'],
+        lastName: json['lastName'],
+        dob: json['dob'],
+        bloodType: json['bloodType'],
+        phone: json['phone'],
+        email: json['email'],
+      );
 }

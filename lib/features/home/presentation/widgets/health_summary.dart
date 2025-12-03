@@ -1,3 +1,4 @@
+import 'package:ecare360/features/home/presentation/providers/local_storage_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -5,7 +6,9 @@ import '../../../../core/constants/app_text_styles.dart';
 
 /// Health summary cards widget
 class HealthSummary extends StatelessWidget {
-  const HealthSummary({super.key});
+  final LocalStorageState storageState;
+
+  const HealthSummary(this.storageState, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,12 +23,12 @@ class HealthSummary extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        const Row(
+        Row(
           children: [
             Expanded(
               child: _HealthCard(
                 title: 'Total Treatments',
-                value: '72',
+                value: '${storageState.totalTreatments}',
                 unit: '',
                 icon: Icons.calendar_month_outlined,
                 color: AppColors.error,
@@ -33,11 +36,11 @@ class HealthSummary extends StatelessWidget {
                 trendUp: true,
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: _HealthCard(
                 title: 'Scheduled',
-                value: '80',
+                value: '${storageState.scheduledCount}',
                 unit: '',
                 icon: Icons.access_time_rounded,
                 color: AppColors.success,
@@ -48,12 +51,12 @@ class HealthSummary extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        const Row(
+        Row(
           children: [
             Expanded(
               child: _HealthCard(
                 title: 'In Progress',
-                value: '43',
+                value: '${storageState.inProgressCount}',
                 unit: '',
                 icon: Icons.directions_walk,
                 color: AppColors.primary,
@@ -61,11 +64,11 @@ class HealthSummary extends StatelessWidget {
                 trendUp: true,
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: _HealthCard(
                 title: 'Completed',
-                value: '42',
+                value: '${storageState.completedCount}',
                 unit: '',
                 icon: Icons.check_circle_rounded,
                 color: AppColors.secondary,

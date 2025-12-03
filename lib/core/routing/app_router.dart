@@ -59,7 +59,7 @@ class AppRouter {
           GoRoute(
             path: 'schedule_treatment',
             name: 'schedule_treatment',
-            builder: (context, state) => const ScheduleTreatmentScreen(),
+            builder: (context, state) => const ScheduleTreatmentSection(),
           ),
           GoRoute(
             path: 'profile',
