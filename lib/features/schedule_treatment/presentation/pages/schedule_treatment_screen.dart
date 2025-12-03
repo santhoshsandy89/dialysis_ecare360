@@ -3,6 +3,7 @@ import 'package:ecare360/core/widgets/custom_text_field.dart';
 import 'package:ecare360/data/models/patient_model.dart';
 import 'package:ecare360/data/models/treatment_model.dart';
 import 'package:ecare360/features/home/presentation/providers/local_storage_controller.dart';
+import 'package:ecare360/features/home/presentation/providers/patient_id_provider.dart';
 import 'package:ecare360/features/schedule_treatment/data/models/patient.dart';
 import 'package:ecare360/features/session_management/presentation/pages/session_management_screen.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,7 @@ class _ScheduleTreatmentSectionState
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _dobController = TextEditingController();
+  String? _selectedPatientMrn;
 
   DateTime? _patientDob;
   BloodType? _patientBloodType;
@@ -80,6 +82,7 @@ class _ScheduleTreatmentSectionState
   }
 
   void _showAddPatientModal(BuildContext context, WidgetRef ref) {
+    final patients = ref.watch(patientIdProvider);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -124,11 +127,31 @@ class _ScheduleTreatmentSectionState
                         padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
                         child: Column(
                           children: [
-                            CustomTextField(
-                              controller: _mrnNoController,
-                              labelText: 'MRN No.',
-                              validator: (v) =>
-                                  v!.isEmpty ? "MRN No. is required" : null,
+                            _buildDropdownField(
+                              'Patient MRN',
+                              _selectedPatientMrn,
+                              patients
+                                  .map((p) => p.id)
+                                  .toList(), // list of MRNs
+                              (String? newValue) {
+                                final patient = patients
+                                    .firstWhere((p) => p.id == newValue);
+                                setState(() {
+                                  _selectedPatientMrn = newValue;
+                                  _firstNameController.text = patient.username;
+                                  _lastNameController.text = patient.lastName;
+                                  _phoneController.text = patient.phone;
+                                  _emailController.text = patient.email;
+                                });
+                              },
+                              true,
+                              displayValueMap: patients
+                                  .map((p) => {
+                                        'display':
+                                            '${p.id} - ${p.username} ${p.lastName}',
+                                        'value': p.id
+                                      })
+                                  .toList(),
                             ),
                             const SizedBox(height: 16),
 
@@ -203,7 +226,8 @@ class _ScheduleTreatmentSectionState
                               onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
                                   final patient = PatientModel(
-                                    mrnNo: _mrnNoController.text,
+                                    mrnNo: _selectedPatientMrn ??
+                                        _mrnNoController.text,
                                     firstName: _firstNameController.text,
                                     lastName: _lastNameController.text,
                                     dob: _patientDob.toString(),
@@ -723,6 +747,52 @@ class _ScheduleTreatmentSectionState
       ],
     );
   }
+
+  // Helper method for dropdown fields
+  // Helper method for dropdown fields (SAFE VERSION)
+  Widget _buildDropdownField(
+    String label,
+    String? selectedValue,
+    List<String> items,
+    ValueChanged<String?> onChanged,
+    bool isRequired, {
+    List<Map<String, dynamic>>? displayValueMap,
+  }) {
+    // If using displayValueMap → rebuild items from it
+    final dropdownItems = displayValueMap != null
+        ? displayValueMap.map((map) => map['display'] as String).toList()
+        : items;
+
+    // Prevent Flutter crash: value must be in items
+    final safeValue =
+        dropdownItems.contains(selectedValue) ? selectedValue : null;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: DropdownButtonFormField<String>(
+        value: safeValue,
+        decoration: InputDecoration(
+          labelText: '$label${isRequired ? ' *' : ''}',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        items: dropdownItems.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        onChanged: onChanged,
+        validator: (value) {
+          if (isRequired && (value == null || value.isEmpty)) {
+            return '$label is required';
+          }
+          return null;
+        },
+      ),
+    );
+  }
 }
 
 class _ScheduledTreatmentItem extends StatelessWidget {
@@ -738,6 +808,9 @@ class _ScheduledTreatmentItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final formattedDate =
+        DateFormat('dd MMM yyyy').format(treatment.scheduledDate);
+    final formattedTime = treatment.scheduledTime.format(context);
     return Row(
       children: [
         // Avatar
@@ -763,14 +836,8 @@ class _ScheduledTreatmentItem extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                "${treatment.treatmentType.name}  •  "
-                "${treatment.scheduledTime.format(context)}",
+                "${treatment.treatmentType.name} • $formattedDate $formattedTime",
                 style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                DateFormat("dd MMM yyyy").format(treatment.scheduledDate),
-                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),

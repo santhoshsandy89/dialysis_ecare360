@@ -1,6 +1,7 @@
 import 'package:ecare360/data/models/treatment_model.dart';
 import 'package:ecare360/data/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -10,25 +11,41 @@ import '../../../../core/constants/app_text_styles.dart';
 class ScheduleTreatmentList extends StatefulWidget {
   final List<Treatment> treatments;
 
-  const ScheduleTreatmentList({super.key, required this.treatments});
+  const ScheduleTreatmentList({
+    super.key,
+    required this.treatments,
+  });
 
   @override
   State<ScheduleTreatmentList> createState() => _ScheduleTreatmentListState();
 }
 
 class _ScheduleTreatmentListState extends State<ScheduleTreatmentList> {
-  List<Treatment> treatments = [];
+  late List<Treatment> treatments;
+  bool loading = true;
 
   @override
   void initState() {
     super.initState();
+    treatments = widget.treatments;
     _loadTreatments();
+  }
+
+  @override
+  void didUpdateWidget(covariant ScheduleTreatmentList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.treatments != widget.treatments) {
+      setState(() {
+        treatments = widget.treatments;
+      });
+    }
   }
 
   Future<void> _loadTreatments() async {
     final list = await LocalStorageService.getTreatments();
     setState(() {
       treatments = list;
+      loading = false;
     });
   }
 
@@ -37,49 +54,58 @@ class _ScheduleTreatmentListState extends State<ScheduleTreatmentList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // HEADER
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Treatments',
-              style: AppTextStyles.titleLarge.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimaryLight,
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                'View All',
-                style: AppTextStyles.labelLarge.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
+        _buildHeader(),
         const SizedBox(height: 16),
+        _buildCard(),
+      ],
+    );
+  }
 
-        // MAIN CARD
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowLight,
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Treatments',
+          style: AppTextStyles.titleLarge.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimaryLight,
           ),
-          child: treatments.isEmpty
+        ),
+        TextButton(
+          onPressed: () {},
+          child: Text(
+            'View All',
+            style: AppTextStyles.labelLarge.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowLight,
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: loading
+          ? const Center(child: CircularProgressIndicator())
+          : treatments.isEmpty
               ? Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.all(20),
                     child: Text(
                       "No Treatments Scheduled",
                       style: AppTextStyles.bodyMedium.copyWith(
@@ -94,14 +120,12 @@ class _ScheduleTreatmentListState extends State<ScheduleTreatmentList> {
                     return Column(
                       children: [
                         TreatmentItem(treatment: t),
-                        if (index != treatments.length - 1)
+                        if (index < treatments.length - 1)
                           const Divider(height: 24),
                       ],
                     );
                   }),
                 ),
-        ),
-      ],
     );
   }
 }
@@ -113,6 +137,9 @@ class TreatmentItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final formattedDate =
+        DateFormat('dd MMM yyyy').format(treatment.scheduledDate);
+    final formattedTime = treatment.scheduledTime.format(context);
     return Row(
       children: [
         // Icon for treatment
@@ -145,7 +172,7 @@ class TreatmentItem extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                "${treatment.treatmentType.name} • $treatment.scheduledDate ${treatment.scheduledTime.format(context)}",
+                "${treatment.treatmentType.name} • $formattedDate $formattedTime",
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),

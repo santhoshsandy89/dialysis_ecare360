@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:ecare360/data/models/bed_status_model.dart'; // Import BedStatusModel
 import 'package:ecare360/data/models/doctor_model.dart';
+import 'package:ecare360/data/models/patient_id_model.dart';
 import 'package:ecare360/data/models/patient_model.dart';
 import 'package:ecare360/data/models/treatment_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -197,6 +198,25 @@ class LocalStorageService {
   static const String _keyEmail = "saved_email";
   static const String _keyPassword = "saved_password";
   static const String _keyRememberMe = "remember_me";
+
+  static Future<void> savePatientsIdList(List<PatientIDModel> patients) async {
+    final prefs = await _instance;
+    final String encodedList =
+        json.encode(patients.map((p) => p.toJson()).toList());
+    await prefs.setString(_patientsKey, encodedList);
+    AppLogger.debug('Patients list saved locally.');
+  }
+
+  static Future<List<PatientIDModel>> getPatientsIdList() async {
+    final prefs = await _instance;
+    final String? encodedList = prefs.getString(_patientsKey);
+    if (encodedList == null) {
+      return [];
+    }
+    final List<dynamic> decodedList = json.decode(encodedList);
+    AppLogger.debug('Patients list retrieved locally.');
+    return decodedList.map((json) => PatientIDModel.fromJson(json)).toList();
+  }
 
   static Future<void> savePatientsList(List<PatientModel> patients) async {
     final prefs = await _instance;

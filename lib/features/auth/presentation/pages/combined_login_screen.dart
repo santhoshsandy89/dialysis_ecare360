@@ -2,17 +2,14 @@ import 'dart:ui';
 
 import 'package:ecare360/core/constants/app_routes.dart';
 import 'package:ecare360/core/utils/logger.dart';
-import 'package:ecare360/data/models/bed_status_model.dart';
 import 'package:ecare360/data/models/doctor_model.dart';
-import 'package:ecare360/data/models/patient_model.dart';
+import 'package:ecare360/data/models/patient_id_model.dart';
 import 'package:ecare360/data/services/auth_service.dart';
-import 'package:ecare360/data/services/bed_status_service.dart';
 import 'package:ecare360/data/services/local_storage_service.dart';
 import 'package:ecare360/data/services/user_service.dart';
 import 'package:ecare360/features/auth/presentation/providers/auth_provider.dart';
-import 'package:ecare360/features/home/presentation/providers/bed_status_provider.dart';
 import 'package:ecare360/features/home/presentation/providers/doctor_provider.dart';
-import 'package:ecare360/features/home/presentation/providers/patient_provider.dart';
+import 'package:ecare360/features/home/presentation/providers/patient_id_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -106,26 +103,23 @@ class _CombinedLoginScreenState extends ConsumerState<CombinedLoginScreen> {
   Future<void> _prefetchAppData(String token) async {
     try {
       final userService = UserService();
-      final bedStatusService = BedStatusService();
 
       final patients = await _fetchPatients(userService, token);
       final doctors = await _fetchDoctors(userService, token);
-      final beds = await _fetchBedStatus(bedStatusService, token);
 
-      ref.read(patientProvider.notifier).setPatients(patients);
+      ref.read(patientIdProvider.notifier).setPatientsId(patients);
       ref.read(doctorProvider.notifier).setDoctors(doctors);
-      ref.read(bedStatusProvider.notifier).setBedStatuses(beds);
     } catch (e) {
       _showError("Failed to load data: $e");
     }
   }
 
-  Future<List<PatientModel>> _fetchPatients(
+  Future<List<PatientIDModel>> _fetchPatients(
       UserService userService, String token) async {
     final data = await userService.fetchPatients(token);
-    final list = data.map((e) => PatientModel.fromJson(e)).toList();
+    final list = data.map((e) => PatientIDModel.fromJson(e)).toList();
 
-    await LocalStorageService.savePatientsList(list);
+    await LocalStorageService.savePatientsIdList(list);
     AppLogger.debug("✔ Patients cached");
 
     return list;
@@ -140,16 +134,6 @@ class _CombinedLoginScreenState extends ConsumerState<CombinedLoginScreen> {
     AppLogger.debug("✔ Doctors cached");
 
     return list;
-  }
-
-  Future<List<BedStatusModel>> _fetchBedStatus(
-      BedStatusService service, String token) async {
-    final data = await service.fetchBedStatuses(token);
-
-    await LocalStorageService.saveBedStatuses(data);
-    AppLogger.debug("✔ Bed statuses cached");
-
-    return data;
   }
 
   // ---------------------------------------------------------------------------
@@ -172,9 +156,9 @@ class _CombinedLoginScreenState extends ConsumerState<CombinedLoginScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF054A91),
-              Color(0xFF0677B7),
-              Color(0xFF0AA1DD),
+              Color(0xFF63D489),
+              Color(0xFF4FAF6A),
+              Color(0xFF3B7F52),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -235,24 +219,29 @@ class _CombinedLoginScreenState extends ConsumerState<CombinedLoginScreen> {
           controller: _emailController,
           decoration: _inputStyle("Email", Icons.email_outlined),
           keyboardType: TextInputType.emailAddress,
+          style: const TextStyle(
+            color: Colors.white,
+          ),
         ),
         const SizedBox(height: 16),
 
         // PASSWORD
         TextField(
-          controller: _passwordController,
-          obscureText: _obscurePassword,
-          decoration: _inputStyle("Password", Icons.lock_outline).copyWith(
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: Colors.white,
+            controller: _passwordController,
+            obscureText: _obscurePassword,
+            decoration: _inputStyle("Password", Icons.lock_outline).copyWith(
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white,
+                ),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
-              onPressed: () =>
-                  setState(() => _obscurePassword = !_obscurePassword),
             ),
-          ),
-        ),
+            style: const TextStyle(
+              color: Colors.white,
+            )),
         const SizedBox(height: 8),
 
         Row(
@@ -307,13 +296,22 @@ class _CombinedLoginScreenState extends ConsumerState<CombinedLoginScreen> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _login,
         style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.zero,
           backgroundColor: Colors.white,
           foregroundColor: Colors.blueAccent,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.blue)
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Colors.blue,
+                ),
+              )
             : const Text(
                 "Login",
                 style: TextStyle(

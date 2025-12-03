@@ -15,7 +15,6 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String settings = '/settings';
   static const String notifications = '/notifications';
-  static const String floorSelection = '/floor-selection';
   static const String bookAppointment = '/book-appointment';
 
   // Feature Routes

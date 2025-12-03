@@ -10,9 +10,7 @@ import 'package:ecare360/features/home/presentation/providers/doctor_provider.da
 import 'package:ecare360/features/home/presentation/providers/patient_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_routes.dart';
 import '../../../../data/models/doctor_model.dart';
 import '../../../../data/models/patient_model.dart';
 import '../../../../data/services/auth_service.dart';
@@ -88,8 +86,6 @@ class _PasswordScreenState extends ConsumerState<PasswordScreen> {
       }
 
       await _prefetchAppData(accessToken);
-
-      if (mounted) context.go(AppRoutes.floorSelection);
     } catch (e) {
       _showError(e.toString().replaceFirst('Exception: ', ''));
     } finally {

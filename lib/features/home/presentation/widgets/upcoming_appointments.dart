@@ -1,5 +1,6 @@
 import 'package:ecare360/data/models/patient_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -87,6 +88,8 @@ class PatientItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dobDate = DateTime.parse(patient.dob);
+    final formattedDob = DateFormat('dd MMM yyyy').format(dobDate);
     return Row(
       children: [
         // Avatar
@@ -125,11 +128,11 @@ class PatientItem extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                "DOB: ${patient.dob}",
+                "DOB: $formattedDob",
                 style: AppTextStyles.bodySmall.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),
-              ),
+              )
             ],
           ),
         ),

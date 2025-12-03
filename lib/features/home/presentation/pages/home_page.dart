@@ -27,28 +27,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialSelectedFloor != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(floorProvider.notifier).setFloor(
-              widget.initialSelectedFloor!.name,
-              id: widget.initialSelectedFloor!.id,
-              code: widget.initialSelectedFloor!.code,
-            );
-      });
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkAndShowFloorSelection();
-      });
-    }
-  }
-
-  Future<void> _checkAndShowFloorSelection() async {
-    final current = ref.read(floorProvider);
-    if (current == null) await _showFloorSelectionDialog();
-  }
-
-  Future<void> _showFloorSelectionDialog() async {
-    await context.push(AppRoutes.floorSelection);
   }
 
   @override
@@ -59,107 +37,139 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 👇 Auto-refresh when SharedPreferences updates
     final storageState = ref.watch(localStorageProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ---- YOUR HEADER CODE (unchanged) ----
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  )
-                ],
-              ),
-              child: Column(
-                children: [
-                  HomeAppBar(
-                    userName: userName,
-                    onProfileTap: () => context.push(AppRoutes.profile),
-                    onNotificationTap: () =>
-                        context.push(AppRoutes.notifications),
-                    onExitTap: () {
-                      /* unchanged */
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    height: 46,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.search, color: Colors.black54),
-                        SizedBox(width: 10),
-                        Text(
-                          'Search health records, reports...',
-                          style: TextStyle(color: Colors.black54),
-                        )
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ------------ MAIN CONTENT ------------
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+    return WillPopScope(
+      onWillPop: () async {
+        return await _showExitDialog(fromBack: true);
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ---- YOUR HEADER CODE (unchanged) ----
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    )
+                  ],
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Hello, $userName 👋',
-                        style: AppTextStyles.headlineMedium),
-                    const SizedBox(height: 6),
-                    const Text('Your health overview for today',
-                        style: AppTextStyles.bodyLarge),
-                    const SizedBox(height: 20),
-
-                    _sectionWrapper(child: HealthSummary(storageState)),
-                    const SizedBox(height: 20),
-
-                    _sectionWrapper(child: const ScheduleTreatmentSection()),
-                    const SizedBox(height: 20),
-
-                    // 👇 Now loading REAL patients (auto-refreshed)
-                    _sectionWrapper(
-                      child: PatientsList(patients: storageState.patients),
+                    HomeAppBar(
+                      userName: userName,
+                      onProfileTap: () => context.push(AppRoutes.profile),
+                      onNotificationTap: () =>
+                          context.push(AppRoutes.notifications),
+                      onExitTap: _showExitDialog,
                     ),
-                    const SizedBox(height: 20),
-
-                    // 👇 Now loading REAL treatments (auto-refreshed)
-                    _sectionWrapper(
-                      child: ScheduleTreatmentList(
-                        treatments: storageState.treatments,
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 46,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.search, color: Colors.black54),
+                          SizedBox(width: 10),
+                          Text(
+                            'Search health records, reports...',
+                            style: TextStyle(color: Colors.black54),
+                          )
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),
-            ),
-          ],
+
+              // ------------ MAIN CONTENT ------------
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Hello, $userName 👋',
+                          style: AppTextStyles.headlineMedium),
+                      const SizedBox(height: 6),
+                      const Text('Your health overview for today',
+                          style: AppTextStyles.bodyLarge),
+                      const SizedBox(height: 20),
+
+                      _sectionWrapper(child: HealthSummary(storageState)),
+                      const SizedBox(height: 20),
+
+                      _sectionWrapper(child: const ScheduleTreatmentSection()),
+                      const SizedBox(height: 20),
+
+                      // 👇 Now loading REAL patients (auto-refreshed)
+                      _sectionWrapper(
+                        child: PatientsList(patients: storageState.patients),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // 👇 Now loading REAL treatments (auto-refreshed)
+                      _sectionWrapper(
+                        child: ScheduleTreatmentList(
+                          treatments: storageState.treatments,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<bool> _showExitDialog({bool fromBack = false}) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Exit App'),
+        content: const Text('Are you sure you want to exit?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+
+    // If called from the exit icon
+    if (!fromBack && confirmed == true) {
+      context.go(AppRoutes.combinedLogin);
+    }
+
+    // If used by WillPopScope (back button)
+    return confirmed ?? false;
   }
 
   /*@override

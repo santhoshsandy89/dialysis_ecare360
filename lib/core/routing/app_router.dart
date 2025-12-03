@@ -1,7 +1,6 @@
 import 'package:ecare360/core/providers/floor_provider.dart';
 import 'package:ecare360/features/auth/presentation/pages/combined_login_screen.dart';
 import 'package:ecare360/features/home/presentation/pages/book_appointment_screen.dart';
-import 'package:ecare360/features/home/presentation/pages/floor_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,13 +29,6 @@ class AppRouter {
         path: AppRoutes.combinedLogin,
         name: 'login',
         builder: (context, state) => const CombinedLoginScreen(),
-      ),
-
-      // Floor Selection
-      GoRoute(
-        path: AppRoutes.floorSelection,
-        name: 'floorSelection',
-        builder: (context, state) => const FloorSelectionScreen(),
       ),
 
       // Book Appointment

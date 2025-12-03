@@ -29,7 +29,7 @@ class PatientModel {
 
   factory PatientModel.fromJson(Map<String, dynamic> json) => PatientModel(
         mrnNo: json['mrnNo'],
-        firstName: json['firstName'],
+        firstName: json['firstName'] ?? '',
         lastName: json['lastName'],
         dob: json['dob'],
         bloodType: json['bloodType'],

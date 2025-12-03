@@ -9,54 +9,70 @@ class ClinicalNotesPage extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const TextField(
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: "Machine Alarms",
-              hintText: "Document any machine alarms...",
-              border: OutlineInputBorder(),
+          Card(
+            color: Colors.blue.shade100,
+            elevation: 8,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const TextField(
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: "Machine Alarms",
+                      hintText: "Document any machine alarms...",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const TextField(
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: "Nursing Interventions",
+                      hintText: "Document interventions performed...",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField(
+                    decoration: const InputDecoration(
+                      labelText: "Patient Tolerance",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ["Good", "Moderate", "Poor"]
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (_) {},
+                  ),
+                  const SizedBox(height: 16),
+                  const TextField(
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: "Symptoms During Treatment",
+                      hintText: "Document any symptoms reported...",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const TextField(
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: "Complications Details",
+                      hintText: "Document any complications...",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 16),
-          const TextField(
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: "Nursing Interventions",
-              hintText: "Document interventions performed...",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField(
-            decoration: const InputDecoration(
-              labelText: "Patient Tolerance",
-              border: OutlineInputBorder(),
-            ),
-            items: ["Good", "Moderate", "Poor"]
-                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                .toList(),
-            onChanged: (_) {},
-          ),
-          const SizedBox(height: 16),
-          const TextField(
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: "Symptoms During Treatment",
-              hintText: "Document any symptoms reported...",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const TextField(
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: "Complications Details",
-              hintText: "Document any complications...",
-              border: OutlineInputBorder(),
-            ),
-          ),
+          const SizedBox(height: 24),
           actionButtons(context),
         ],
       ),

@@ -9,30 +9,56 @@ class TreatmentParametersPage extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          rowInput("Actual Blood Flow Rate (mL/min)"),
-          rowInput("Total Blood Processed (mL)"),
-          rowInput("Dialyzer Type"),
-          rowInput("Arterial Pressure (mmHg)"),
-          rowInput("Actual Dialysate Flow Rate (mL/min)"),
-          rowInput("Heparin Bolus (units)"),
-          DropdownButtonFormField(
-            decoration: const InputDecoration(
-              labelText: "Access Condition",
-              border: OutlineInputBorder(),
+          Card(
+            color: Colors.red.shade100,
+            elevation: 8,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            items: ["Good", "Fair", "Poor"]
-                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                .toList(),
-            onChanged: (_) {},
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  rowInput("Actual Blood Flow Rate (mL/min)"),
+                  const SizedBox(height: 12),
+                  rowInput("Total Blood Processed (mL)"),
+                  const SizedBox(height: 12),
+                  rowInput("Dialyzer Type"),
+                  const SizedBox(height: 12),
+                  rowInput("Arterial Pressure (mmHg)"),
+                  const SizedBox(height: 12),
+                  rowInput("Actual Dialysate Flow Rate (mL/min)"),
+                  const SizedBox(height: 12),
+                  rowInput("Heparin Bolus (units)"),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField(
+                    decoration: const InputDecoration(
+                      labelText: "Access Condition",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ["Good", "Fair", "Poor"]
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (_) {},
+                  ),
+                  const SizedBox(height: 12),
+                  rowInput("Venous Pressure (mmHg)"),
+                  const SizedBox(height: 12),
+                  rowInput("Actual Ultrafiltration (mL)"),
+                  const SizedBox(height: 12),
+                  rowInput("Heparin Rate (units/hr)"),
+                  const SizedBox(height: 12),
+                  rowInput("Needle Size (Gauge)"),
+                  const SizedBox(height: 12),
+                  rowInput("TMP (mmHg)"),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 14),
-          rowInput("Venous Pressure (mmHg)"),
-          rowInput("Actual Ultrafiltration (mL)"),
-          rowInput("Heparin Rate (units/hr)"),
-          rowInput("Needle Size (Gauge)"),
-          rowInput("TMP (mmHg)"),
+          const SizedBox(height: 24),
           actionButtons(context),
         ],
       ),

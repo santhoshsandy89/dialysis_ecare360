@@ -1,4 +1,4 @@
-package com.example.ecare360
+package com.yanthra.dialysis_ecare
 
 import io.flutter.embedding.android.FlutterActivity
 

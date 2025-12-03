@@ -88,9 +88,9 @@ class _SplashPageState extends ConsumerState<SplashPage>
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF054A91),
-              Color(0xFF0677B7),
-              Color(0xFF0AA1DD),
+              Color(0xFF63D489),
+              Color(0xFF4FAF6A),
+              Color(0xFF3B7F52),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,

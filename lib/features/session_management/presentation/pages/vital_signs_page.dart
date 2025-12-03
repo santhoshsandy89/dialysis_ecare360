@@ -12,7 +12,7 @@ class VitalSignsPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           sectionCard(
-            color: Colors.greenAccent.shade100,
+            color: Colors.red.shade100,
             title: "Weight Management",
             icon: Icons.line_weight_outlined,
             children: [
@@ -21,7 +21,7 @@ class VitalSignsPage extends StatelessWidget {
             ],
           ),
           sectionCard(
-            color: Colors.red.shade100,
+            color: Colors.greenAccent.shade100,
             title: "Heart Rate",
             icon: Icons.favorite,
             children: [
