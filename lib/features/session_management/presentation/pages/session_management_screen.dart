@@ -7,15 +7,18 @@ import 'package:ecare360/features/session_management/presentation/pages/treatmen
 import 'package:ecare360/features/session_management/presentation/pages/vital_signs_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 class SessionManagementScreen extends StatefulWidget {
   final PatientModel patient;
   final String treatmentType;
+  final DateTime scheduledDate;
 
   const SessionManagementScreen({
     super.key,
     required this.patient,
     required this.treatmentType,
+    required this.scheduledDate,
   });
 
   @override
@@ -78,7 +81,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
   }
 
   Future<void> _loadSessionData() async {
-    final sessionData = await LocalStorageService.fetchSessionData(widget.patient.mrnNo);
+    final sessionData = await LocalStorageService.fetchSessionData(widget.patient.mrnNo, widget.scheduledDate);
     if (sessionData != null) {
       // Vital Signs
       _preWeightController.text = sessionData.vitalSigns.bloodPressure;
@@ -100,7 +103,10 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
 
       // Clinical Notes
       _machineAlarmsController.text = sessionData.clinicalNotes.notes;
-      // ... populate other clinical notes
+      _patientToleranceController.text = sessionData.clinicalNotes.patientTolerance;
+      _nursingInterventionsController.text = sessionData.clinicalNotes.nursingInterventions;
+      _symptomsDuringTreatmentController.text = sessionData.clinicalNotes.symptomsDuringTreatment;
+      _complicationsDetailsController.text = sessionData.clinicalNotes.complicationsDetails;
     }
   }
 
@@ -172,10 +178,15 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
 
     final clinicalNotes = ClinicalNotes(
       notes: _machineAlarmsController.text,
+      patientTolerance: _patientToleranceController.text,
+      nursingInterventions: _nursingInterventionsController.text,
+      symptomsDuringTreatment: _symptomsDuringTreatmentController.text,
+      complicationsDetails: _complicationsDetailsController.text,
     );
 
     final sessionData = SessionData(
       patientId: widget.patient.mrnNo,
+      sessionDate: widget.scheduledDate,
       vitalSigns: vitalSigns,
       treatmentParameters: treatmentParameters,
       laboratoryValues: laboratoryValues,
@@ -219,7 +230,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "${widget.patient.firstName} • MRN: ${widget.patient.mrnNo} • ${widget.treatmentType} ",
+                  "${widget.patient.firstName} • MRN: ${widget.patient.mrnNo} • ${widget.treatmentType} • ${DateFormat('dd MMM yyyy').format(widget.scheduledDate)}",
                   style: TextStyle(
                     color: Theme.of(context)
                         .colorScheme

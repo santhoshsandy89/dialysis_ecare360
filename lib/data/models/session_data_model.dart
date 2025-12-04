@@ -2,6 +2,7 @@ import 'dart:convert';
 
 class SessionData {
   final String patientId;
+  final DateTime sessionDate;
   final VitalSigns vitalSigns;
   final TreatmentParameters treatmentParameters;
   final LaboratoryValues laboratoryValues;
@@ -9,6 +10,7 @@ class SessionData {
 
   SessionData({
     required this.patientId,
+    required this.sessionDate,
     required this.vitalSigns,
     required this.treatmentParameters,
     required this.laboratoryValues,
@@ -18,6 +20,7 @@ class SessionData {
   Map<String, dynamic> toMap() {
     return {
       'patientId': patientId,
+      'sessionDate': sessionDate.toIso8601String(),
       'vitalSigns': vitalSigns.toMap(),
       'treatmentParameters': treatmentParameters.toMap(),
       'laboratoryValues': laboratoryValues.toMap(),
@@ -28,6 +31,7 @@ class SessionData {
   factory SessionData.fromMap(Map<String, dynamic> map) {
     return SessionData(
       patientId: map['patientId'] ?? '',
+      sessionDate: DateTime.parse(map['sessionDate']),
       vitalSigns: VitalSigns.fromMap(map['vitalSigns'] ?? {}),
       treatmentParameters: TreatmentParameters.fromMap(map['treatmentParameters'] ?? {}),
       laboratoryValues: LaboratoryValues.fromMap(map['laboratoryValues'] ?? {}),
@@ -138,20 +142,36 @@ class LaboratoryValues {
 
 class ClinicalNotes {
   final String notes;
+  final String patientTolerance;
+  final String nursingInterventions;
+  final String symptomsDuringTreatment;
+  final String complicationsDetails;
 
   ClinicalNotes({
     required this.notes,
+    required this.patientTolerance,
+    required this.nursingInterventions,
+    required this.symptomsDuringTreatment,
+    required this.complicationsDetails,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'notes': notes,
+      'patientTolerance': patientTolerance,
+      'nursingInterventions': nursingInterventions,
+      'symptomsDuringTreatment': symptomsDuringTreatment,
+      'complicationsDetails': complicationsDetails,
     };
   }
 
   factory ClinicalNotes.fromMap(Map<String, dynamic> map) {
     return ClinicalNotes(
       notes: map['notes'] ?? '',
+      patientTolerance: map['patientTolerance'] ?? '',
+      nursingInterventions: map['nursingInterventions'] ?? '',
+      symptomsDuringTreatment: map['symptomsDuringTreatment'] ?? '',
+      complicationsDetails: map['complicationsDetails'] ?? '',
     );
   }
 

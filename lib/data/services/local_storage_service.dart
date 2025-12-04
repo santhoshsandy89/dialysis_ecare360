@@ -402,25 +402,25 @@ class LocalStorageService {
 
   static Future<void> saveSessionData(SessionData sessionData) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = '$_sessionDataPrefix${sessionData.patientId}';
+    final key = '$_sessionDataPrefix${sessionData.patientId}_${sessionData.sessionDate.toIso8601String().split('T').first}';
     await prefs.setString(key, sessionData.toJson());
-    AppLogger.debug('Session data saved for patient: ${sessionData.patientId}');
+    AppLogger.debug('Session data saved for patient: ${sessionData.patientId} on ${sessionData.sessionDate}');
   }
 
-  static Future<SessionData?> fetchSessionData(String patientId) async {
+  static Future<SessionData?> fetchSessionData(String patientId, DateTime sessionDate) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = '$_sessionDataPrefix$patientId';
+    final key = '$_sessionDataPrefix$patientId _${sessionDate.toIso8601String().split('T').first}';
     final String? sessionDataJson = prefs.getString(key);
     if (sessionDataJson == null) {
       return null;
     }
-    AppLogger.debug('Session data retrieved for patient: $patientId');
+    AppLogger.debug('Session data retrieved for patient: $patientId on $sessionDate');
     return SessionData.fromJson(sessionDataJson);
   }
 
-  static Future<bool> hasSessionData(String patientId) async {
+  static Future<bool> hasSessionData(String patientId, DateTime sessionDate) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = '$_sessionDataPrefix$patientId';
+    final key = '$_sessionDataPrefix$patientId _${sessionDate.toIso8601String().split('T').first}';
     return prefs.containsKey(key);
   }
 }

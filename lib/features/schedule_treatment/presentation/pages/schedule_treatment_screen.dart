@@ -1,6 +1,7 @@
 import 'package:ecare360/core/widgets/custom_button.dart';
 import 'package:ecare360/core/widgets/custom_text_field.dart';
 import 'package:ecare360/data/models/patient_model.dart';
+import 'package:ecare360/data/models/session_data_model.dart';
 import 'package:ecare360/data/models/treatment_model.dart';
 import 'package:ecare360/data/services/local_storage_service.dart';
 import 'package:ecare360/features/home/presentation/providers/local_storage_controller.dart';
@@ -799,10 +800,14 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
         DateFormat('dd MMM yyyy').format(treatment.scheduledDate);
     final formattedTime = treatment.scheduledTime.format(context);
 
-    return FutureBuilder<bool>(
-      future: LocalStorageService.hasSessionData(patientId),
+    return FutureBuilder<SessionData?>(
+      future: LocalStorageService.fetchSessionData(patientId, treatment.scheduledDate),
       builder: (context, snapshot) {
-        final bool hasData = snapshot.data ?? false;
+        final SessionData? sessionData = snapshot.data;
+        final bool hasData = sessionData != null &&
+            sessionData.sessionDate.toIso8601String().split('T').first ==
+                treatment.scheduledDate.toIso8601String().split('T').first;
+
         return Row(
           children: [
             // Avatar
@@ -863,6 +868,7 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
                                           patient: treatment.patient,
                                           treatmentType: treatment
                                               .treatmentType.name, // or dynamically pass schedule.treatmentType
+                                          scheduledDate: treatment.scheduledDate,
                                         ),
                                       ),
                                     );

@@ -8,11 +8,12 @@ import 'package:ecare360/data/services/local_storage_service.dart';
 
 class ReportViewerScreen extends StatelessWidget {
   final String patientId;
+  final DateTime sessionDate;
 
-  const ReportViewerScreen({super.key, required this.patientId});
+  const ReportViewerScreen({super.key, required this.patientId, required this.sessionDate});
 
   Future<SessionData?> _fetchSessionData() async {
-    return await LocalStorageService.fetchSessionData(patientId);
+    return await LocalStorageService.fetchSessionData(patientId, sessionDate);
   }
 
   Future<Uint8List> _generatePdf(SessionData sessionData) async {
@@ -54,6 +55,10 @@ class ReportViewerScreen extends StatelessWidget {
           ]),
           _buildSection(context, 'Clinical Notes', [
             _buildDetailRow('Notes', sessionData.clinicalNotes.notes),
+            _buildDetailRow('Patient Tolerance', sessionData.clinicalNotes.patientTolerance),
+            _buildDetailRow('Nursing Interventions', sessionData.clinicalNotes.nursingInterventions),
+            _buildDetailRow('Symptoms During Treatment', sessionData.clinicalNotes.symptomsDuringTreatment),
+            _buildDetailRow('Complications Details', sessionData.clinicalNotes.complicationsDetails),
           ]),
         ],
       ),
