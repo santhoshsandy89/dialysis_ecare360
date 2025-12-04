@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 
 import '../../../session_management/presentation/pages/report_viewer_screen.dart';
 import '../providers/schedule_treatment_provider.dart';
+import 'package:ecare360/core/utils/logger.dart';
 
 enum TreatmentType { Hemodialysis, PeritonealDialysis }
 
@@ -803,10 +804,22 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
     return FutureBuilder<SessionData?>(
       future: LocalStorageService.fetchSessionData(patientId, treatment.scheduledDate),
       builder: (context, snapshot) {
+        AppLogger.debug('SCHEDULE_ITEM: Checking patient: $patientId, date: ${treatment.scheduledDate.toIso8601String().split('T').first}');
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          AppLogger.error('SCHEDULE_ITEM: Error fetching session data for $patientId on ${treatment.scheduledDate.toIso8601String().split('T').first}: ${snapshot.error}');
+          return Text('Error: ${snapshot.error}');
+        }
+
         final SessionData? sessionData = snapshot.data;
         final bool hasData = sessionData != null &&
             sessionData.sessionDate.toIso8601String().split('T').first ==
                 treatment.scheduledDate.toIso8601String().split('T').first;
+
+        AppLogger.debug('SCHEDULE_ITEM: Patient: $patientId, Scheduled Date: ${treatment.scheduledDate.toIso8601String().split('T').first}, SessionData found: ${sessionData != null}, Dates match: $hasData');
+        AppLogger.debug('SCHEDULE_ITEM: Final hasData for $patientId on ${treatment.scheduledDate.toIso8601String().split('T').first}: $hasData');
 
         return Row(
           children: [
@@ -856,7 +869,7 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
                                       context,
                                       MaterialPageRoute(
                                         builder: (_)
-                                            => ReportViewerScreen(patientId: patientId),
+                                            => ReportViewerScreen(patientId: patientId, sessionDate: treatment.scheduledDate),
                                       ),
                                     );
                                   }

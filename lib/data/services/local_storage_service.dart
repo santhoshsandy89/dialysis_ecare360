@@ -403,24 +403,30 @@ class LocalStorageService {
   static Future<void> saveSessionData(SessionData sessionData) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '$_sessionDataPrefix${sessionData.patientId}_${sessionData.sessionDate.toIso8601String().split('T').first}';
+    AppLogger.debug('LOCAL_STORAGE: Saving session data with key: $key, data: ${sessionData.toJson()}');
     await prefs.setString(key, sessionData.toJson());
-    AppLogger.debug('Session data saved for patient: ${sessionData.patientId} on ${sessionData.sessionDate}');
+    AppLogger.debug('LOCAL_STORAGE: Session data saved for patient: ${sessionData.patientId} on ${sessionData.sessionDate}');
   }
 
   static Future<SessionData?> fetchSessionData(String patientId, DateTime sessionDate) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = '$_sessionDataPrefix$patientId _${sessionDate.toIso8601String().split('T').first}';
+    final key = '$_sessionDataPrefix${patientId}_${sessionDate.toIso8601String().split('T').first}';
+    AppLogger.debug('LOCAL_STORAGE: Attempting to fetch session data with key: $key');
     final String? sessionDataJson = prefs.getString(key);
     if (sessionDataJson == null) {
+      AppLogger.debug('LOCAL_STORAGE: No session data found for key: $key');
       return null;
     }
-    AppLogger.debug('Session data retrieved for patient: $patientId on $sessionDate');
+    AppLogger.debug('LOCAL_STORAGE: Retrieved session data JSON for key: $key, data: $sessionDataJson');
+    AppLogger.debug('LOCAL_STORAGE: Session data retrieved for patient: $patientId on $sessionDate');
     return SessionData.fromJson(sessionDataJson);
   }
 
   static Future<bool> hasSessionData(String patientId, DateTime sessionDate) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = '$_sessionDataPrefix$patientId _${sessionDate.toIso8601String().split('T').first}';
-    return prefs.containsKey(key);
+    final key = '$_sessionDataPrefix${patientId}_${sessionDate.toIso8601String().split('T').first}';
+    final bool contains = prefs.containsKey(key);
+    AppLogger.debug('LOCAL_STORAGE: Checking hasSessionData for key: $key, result: $contains');
+    return contains;
   }
 }
