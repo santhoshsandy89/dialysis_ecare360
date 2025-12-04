@@ -229,6 +229,8 @@ class _ScheduleTreatmentSectionState
                               icon: Icons.person_add,
                               onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
+                                  AppLogger.debug('ADD_PATIENT_MODAL: _selectedPatientMrn: $_selectedPatientMrn');
+                                  AppLogger.debug('ADD_PATIENT_MODAL: _mrnNoController.text: ${_mrnNoController.text}');
                                   final patient = PatientModel(
                                     mrnNo: _selectedPatientMrn ??
                                         _mrnNoController.text,
@@ -375,6 +377,7 @@ class _ScheduleTreatmentSectionState
                             onChanged: (value) {
                               setState(() {
                                 selectedPatient = value;
+                                AppLogger.debug('SCHEDULE_TREATMENT_BOTTOM_SHEET: Selected Patient MRN: ${selectedPatient?.mrnNo}');
                               });
                             },
                             validator: (v) =>
