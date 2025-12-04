@@ -229,11 +229,15 @@ class _ScheduleTreatmentSectionState
                               icon: Icons.person_add,
                               onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
+                                  if (_selectedPatientMrn == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text("Please select a patient MRN.")),
+                                    );
+                                    return;
+                                  }
                                   AppLogger.debug('ADD_PATIENT_MODAL: _selectedPatientMrn: $_selectedPatientMrn');
-                                  AppLogger.debug('ADD_PATIENT_MODAL: _mrnNoController.text: ${_mrnNoController.text}');
                                   final patient = PatientModel(
-                                    mrnNo: _selectedPatientMrn ??
-                                        _mrnNoController.text,
+                                    mrnNo: _selectedPatientMrn!,
                                     firstName: _firstNameController.text,
                                     lastName: _lastNameController.text,
                                     dob: _patientDob.toString(),
