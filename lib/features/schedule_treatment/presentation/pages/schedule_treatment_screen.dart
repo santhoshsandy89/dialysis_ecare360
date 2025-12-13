@@ -655,7 +655,8 @@ class _ScheduleTreatmentSectionState
                                 accessType: accessType!,
                                 ufGoal: int.tryParse(ufGoalController.text),
                                 notes: notesController.text,
-                                isCompleted: false,
+                                status:
+                                    SessionStatus.pending, // Set initial status
                               );
 
                               await ref
@@ -697,7 +698,6 @@ class _ScheduleTreatmentSectionState
     final selectedDate = state.selectedDate;
     final patientList = state.patientList;
     final selectedStatus = state.selectedStatus;
-    final scheduledList = state.scheduledTreatments;
     final storageState = ref.watch(localStorageProvider);
     final scheduledListController = storageState.treatments;
     final patientListController = storageState.patients;
@@ -734,25 +734,28 @@ class _ScheduleTreatmentSectionState
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: DropdownButtonFormField<TreatmentStatus>(
+                      child: DropdownButtonFormField<SessionStatus>(
                         value: selectedStatus,
                         decoration: const InputDecoration(
                           labelText: "Status",
                           border: OutlineInputBorder(),
                         ),
-                        onChanged: (v) {
-                          if (v != null) {
+                        onChanged: (SessionStatus? value) {
+                          if (value != null) {
                             ref
                                 .read(scheduleTreatmentProvider.notifier)
-                                .updateSelectedStatus(v);
+                                .updateSelectedStatus(value);
                           }
                         },
-                        items: TreatmentStatus.values
-                            .map((status) => DropdownMenuItem(
-                                  value: status,
-                                  child:
-                                      Text(status.toString().split('.').last),
-                                ))
+                        items: SessionStatus.values
+                            .map(
+                              (status) => DropdownMenuItem<SessionStatus>(
+                                value: status,
+                                child: Text(
+                                  _statusLabel(status),
+                                ),
+                              ),
+                            )
                             .toList(),
                       ),
                     ),
@@ -838,7 +841,8 @@ class _ScheduleTreatmentSectionState
                       },
                       patientId: scheduledListController[i].patient.mrnNo,
                       onSessionCompleted: () {
-                        setState(() {});
+                        // Force a refresh of the entire list to re-evaluate button states
+                        ref.invalidate(localStorageProvider);
                       },
                     ),
                     if (i != scheduledListController.length - 1)
@@ -932,6 +936,17 @@ class _ScheduleTreatmentSectionState
       ),
     );
   }
+
+  String _statusLabel(SessionStatus status) {
+    switch (status) {
+      case SessionStatus.pending:
+        return 'Pending';
+      case SessionStatus.in_progress:
+        return 'In Progress';
+      case SessionStatus.completed:
+        return 'Completed';
+    }
+  }
 }
 
 class _ScheduledTreatmentItem extends ConsumerWidget {
@@ -953,30 +968,98 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
         DateFormat('dd MMM yyyy').format(treatment.scheduledDate);
     final formattedTime = treatment.scheduledTime.format(context);
 
-    return FutureBuilder<SessionData?>(
-      future: LocalStorageService.fetchSessionData(
-          patientId, treatment.scheduledDate),
+    // Using FutureBuilder to get the most up-to-date treatment status
+    return FutureBuilder<Treatment?>(
+      future:
+          LocalStorageService.getTreatment(patientId, treatment.scheduledDate),
       builder: (context, snapshot) {
         AppLogger.debug(
-            'SCHEDULE_ITEM: Checking patient: $patientId, date: ${treatment.scheduledDate.toIso8601String().split('T').first}');
+            'SCHEDULE_ITEM: Checking treatment status for patient: $patientId, date: ${treatment.scheduledDate.toIso8601String().split('T').first}');
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
         } else if (snapshot.hasError) {
           AppLogger.error(
-              'SCHEDULE_ITEM: Error fetching session data for $patientId on ${treatment.scheduledDate.toIso8601String().split('T').first}: ${snapshot.error}');
+              'SCHEDULE_ITEM: Error fetching treatment for $patientId on ${treatment.scheduledDate.toIso8601String().split('T').first}: ${snapshot.error}');
           return Text('Error: ${snapshot.error}');
         }
 
-        final SessionData? sessionData = snapshot.data;
-        final bool hasData = sessionData != null &&
-            sessionData.sessionDate.toIso8601String().split('T').first ==
-                treatment.scheduledDate.toIso8601String().split('T').first;
+        final Treatment? currentTreatment =
+            snapshot.data; // This is the updated treatment from storage
+        final SessionStatus sessionStatus =
+            currentTreatment?.status ?? SessionStatus.pending;
+
+        String buttonText;
+        Color buttonColor;
+        VoidCallback? onPressedAction;
+        IconData buttonIcon;
+
+        if (sessionStatus == SessionStatus.completed) {
+          buttonText = "View Report";
+          buttonColor = Colors.blue;
+          buttonIcon = Icons.visibility;
+          onPressedAction = () async {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ReportViewerScreen(
+                    patientId: patientId, sessionDate: treatment.scheduledDate),
+              ),
+            );
+          };
+        } else if (sessionStatus == SessionStatus.in_progress) {
+          buttonText = "In Progress";
+          buttonColor = Colors.orange;
+          buttonIcon = Icons.play_circle_fill; // Icon for in-progress
+          onPressedAction = () async {
+            final SessionData? sessionData =
+                await LocalStorageService.fetchSessionData(
+                    patientId, treatment.scheduledDate);
+            final int initialTabIndex = sessionData?.lastActiveTabIndex ?? 0;
+            final SessionStatus? result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SessionManagementScreen(
+                  patient: treatment.patient,
+                  treatmentType: treatment.treatmentMainType.name,
+                  scheduledDate: treatment.scheduledDate,
+                  initialStatus: SessionStatus.in_progress,
+                  initialTabIndex: initialTabIndex,
+                ),
+              ),
+            );
+            // Refresh the list if the session status changed (e.g., completed)
+            if (result != null) {
+              onSessionCompleted();
+            }
+          };
+        } else {
+          // SessionStatus.pending
+          buttonText = "Start Session";
+          buttonColor = Colors.green;
+          buttonIcon = Icons.play_arrow;
+          onPressedAction = () async {
+            final SessionStatus? result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SessionManagementScreen(
+                  patient: treatment.patient,
+                  treatmentType: treatment.treatmentMainType.name,
+                  scheduledDate: treatment.scheduledDate,
+                  initialStatus: SessionStatus.pending,
+                  initialTabIndex: 0,
+                ),
+              ),
+            );
+            // Refresh the list if the session status changed (e.g., in_progress or completed)
+            if (result != null) {
+              onSessionCompleted();
+            }
+          };
+        }
 
         AppLogger.debug(
-            'SCHEDULE_ITEM: Patient: $patientId, Scheduled Date: ${treatment.scheduledDate.toIso8601String().split('T').first}, SessionData found: ${sessionData != null}, Dates match: $hasData');
-        AppLogger.debug(
-            'SCHEDULE_ITEM: Final hasData for $patientId on ${treatment.scheduledDate.toIso8601String().split('T').first}: $hasData');
+            'SCHEDULE_ITEM: Patient: $patientId, Scheduled Date: ${treatment.scheduledDate.toIso8601String().split('T').first}, Session Status: ${sessionStatus.name}, Button: $buttonText');
 
         return Row(
           children: [
@@ -1020,49 +1103,11 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
                         SizedBox(
                           width: buttonWidth,
                           child: ElevatedButton.icon(
-                            onPressed: hasData
-                                ? () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => ReportViewerScreen(
-                                            patientId: patientId,
-                                            sessionDate:
-                                                treatment.scheduledDate),
-                                      ),
-                                    );
-                                  }
-                                : () async {
-                                    final result = await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => SessionManagementScreen(
-                                          patient: treatment.patient,
-                                          treatmentType:
-                                              treatment.treatmentMainType.name,
-                                          // or dynamically pass schedule.treatmentType
-                                          scheduledDate:
-                                              treatment.scheduledDate,
-                                        ),
-                                      ),
-                                    );
-                                    if (result == true) {
-                                      onSessionCompleted();
-                                    }
-                                    ref
-                                        .read(
-                                            scheduleTreatmentProvider.notifier)
-                                        .startSession(treatment.patient,
-                                            treatment.treatmentMainType.name);
-                                  },
-                            icon: Icon(
-                                hasData ? Icons.visibility : Icons.play_arrow,
-                                color: Colors.white),
-                            label:
-                                Text(hasData ? "View Report" : "Start Session"),
+                            onPressed: onPressedAction,
+                            icon: Icon(buttonIcon, color: Colors.white),
+                            label: Text(buttonText),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  hasData ? Colors.blue : Colors.green,
+                              backgroundColor: buttonColor,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 8),

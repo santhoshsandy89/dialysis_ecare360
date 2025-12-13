@@ -46,12 +46,16 @@ class ReportViewerScreen extends StatelessWidget {
                 'Flow Rate', sessionData.treatmentParameters.flowRate),
           ]),
           _buildSection(context, 'Laboratory Values', [
-            _buildDetailRow(
-                'Hemoglobin', sessionData.laboratoryValues.hemoglobin),
-            _buildDetailRow(
-                'Creatinine', sessionData.laboratoryValues.creatinine),
-            _buildDetailRow(
-                'Potassium', sessionData.laboratoryValues.potassium),
+            _buildDetailRow('Hemoglobin', sessionData.laboratoryValues.hemoglobin),
+            _buildDetailRow('Creatinine', sessionData.laboratoryValues.creatinine),
+            _buildDetailRow('Potassium', sessionData.laboratoryValues.potassium),
+            _buildDetailRow('Sodium', sessionData.laboratoryValues.sodium),
+            _buildDetailRow('Pre-Haemoglobin', sessionData.laboratoryValues.preHaemoglobin),
+            _buildDetailRow('Pre-SGOT', sessionData.laboratoryValues.preSGOT),
+            _buildDetailRow('Pre-SGPT', sessionData.laboratoryValues.preSGPT),
+            _buildDetailRow('Post-Haemoglobin', sessionData.laboratoryValues.postHaemoglobin),
+            _buildDetailRow('Post-SGOT', sessionData.laboratoryValues.postSGOT),
+            _buildDetailRow('Post-SGPT', sessionData.laboratoryValues.postSGPT),
           ]),
           _buildSection(context, 'Clinical Notes', [
             _buildDetailRow('Notes', sessionData.clinicalNotes.notes),
@@ -59,6 +63,8 @@ class ReportViewerScreen extends StatelessWidget {
             _buildDetailRow('Nursing Interventions', sessionData.clinicalNotes.nursingInterventions),
             _buildDetailRow('Symptoms During Treatment', sessionData.clinicalNotes.symptomsDuringTreatment),
             _buildDetailRow('Complications Details', sessionData.clinicalNotes.complicationsDetails),
+            _buildDetailRow('Action Taken', sessionData.clinicalNotes.actionTaken),
+            _buildDetailRow('Remarks', sessionData.clinicalNotes.remarks),
           ]),
         ],
       ),

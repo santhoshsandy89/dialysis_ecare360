@@ -10,11 +10,12 @@ Widget sectionTitle(String text) {
   );
 }
 
-Widget rowInput(String label, {TextEditingController? controller}) {
+Widget rowInput(String label, {TextEditingController? controller, bool readOnly = false}) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 14),
     child: TextField(
       controller: controller,
+      readOnly: readOnly,
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
@@ -70,53 +71,41 @@ Widget sectionCard(
   );
 }
 
-Widget actionButtons(
-  BuildContext context, {
-  VoidCallback? onSave,
-  VoidCallback? onComplete,
-  VoidCallback? onNext,
-  VoidCallback? onCancel,
-}) {
+Widget actionButtons(BuildContext context, {VoidCallback? onSave, VoidCallback? onComplete, VoidCallback? onNext, VoidCallback? onCancel, bool readOnly = false}) {
   return Padding(
     padding: const EdgeInsets.only(top: 20, bottom: 40),
     child: Row(
       children: [
-        // CANCEL
         Expanded(
           child: OutlinedButton(
-            onPressed: onCancel,
+            onPressed: onCancel, // Use the provided onCancel callback
             child: const Text("Cancel"),
           ),
         ),
         const SizedBox(width: 16),
-
-        // SAVE PROGRESS
         Expanded(
           child: ElevatedButton(
-            onPressed: onSave,
+            onPressed: readOnly ? null : onSave, // Disable if readOnly
             child: const Text("Save Progress"),
           ),
         ),
         const SizedBox(width: 16),
-
-        // COMPLETE SESSION
         Expanded(
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: onComplete,
+            onPressed: readOnly ? null : onComplete, // Disable if readOnly
             child: const Text("Complete Session"),
           ),
         ),
-        const SizedBox(width: 16),
-
-        // NEXT BUTTON
-        Expanded(
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-            onPressed: onNext,
-            child: const Text("Next"),
+        if (!readOnly) // Only show 'Next' button if not readOnly
+          const SizedBox(width: 16),
+        if (!readOnly) // Only show 'Next' button if not readOnly
+          Expanded(
+            child: ElevatedButton(
+              onPressed: onNext,
+              child: const Text("Next"),
+            ),
           ),
-        ),
       ],
     ),
   );

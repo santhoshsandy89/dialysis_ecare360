@@ -2,6 +2,7 @@ import 'package:ecare360/data/models/treatment_model.dart';
 import 'package:ecare360/data/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ecare360/data/models/session_data_model.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -186,16 +187,25 @@ class TreatmentItem extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: treatment.isCompleted
+            color: treatment.status == SessionStatus.completed
                 ? AppColors.success.withOpacity(0.1)
-                : AppColors.warning.withOpacity(0.1),
+                : treatment.status == SessionStatus.in_progress
+                    ? AppColors.warning.withOpacity(0.1)
+                    : AppColors.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            treatment.isCompleted ? "Completed" : "Pending",
+            treatment.status == SessionStatus.completed
+                ? "Completed"
+                : treatment.status == SessionStatus.in_progress
+                    ? "In Progress"
+                    : "Scheduled",
             style: AppTextStyles.labelSmall.copyWith(
-              color:
-                  treatment.isCompleted ? AppColors.success : AppColors.warning,
+              color: treatment.status == SessionStatus.completed
+                  ? AppColors.success
+                  : treatment.status == SessionStatus.in_progress
+                      ? AppColors.warning
+                      : AppColors.primary,
               fontWeight: FontWeight.w600,
             ),
           ),

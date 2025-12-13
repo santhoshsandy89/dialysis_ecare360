@@ -20,27 +20,30 @@ class LaboratoryValuesPage extends StatelessWidget {
   final VoidCallback? onComplete;
   final VoidCallback? onNext;
   final VoidCallback? onCancel;
+  final bool readOnly;
 
-  const LaboratoryValuesPage(
-      {super.key,
-      required this.preBunController,
-      required this.preCreatinineController,
-      required this.prePotassiumController,
-      required this.preSodiumController,
-      required this.preHaemoglobinController,
-      required this.preSGOTController,
-      required this.preSGPTController,
-      required this.postBunController,
-      required this.postCreatinineController,
-      required this.postPotassiumController,
-      required this.postSodiumController,
-      required this.postHaemoglobinController,
-      required this.postSGOTController,
-      required this.postSGPTController,
-      this.onSave,
-      this.onComplete,
-      this.onNext,
-      this.onCancel});
+  const LaboratoryValuesPage({
+    super.key,
+    required this.preBunController,
+    required this.preCreatinineController,
+    required this.prePotassiumController,
+    required this.preSodiumController,
+    required this.preHaemoglobinController,
+    required this.preSGOTController,
+    required this.preSGPTController,
+    required this.postBunController,
+    required this.postCreatinineController,
+    required this.postPotassiumController,
+    required this.postSodiumController,
+    required this.postHaemoglobinController,
+    required this.postSGOTController,
+    required this.postSGPTController,
+    this.onSave,
+    this.onComplete,
+    this.onNext,
+    this.onCancel,
+    this.readOnly = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,15 +57,13 @@ class LaboratoryValuesPage extends StatelessWidget {
             title: "Pre-Treatment Labs",
             icon: Icons.preview_outlined,
             children: [
-              rowInput("BUN (mg/dL)", controller: preBunController),
-              rowInput("Creatinine (mg/dL)",
-                  controller: preCreatinineController),
-              rowInput("Potassium (mEq/L)", controller: prePotassiumController),
-              rowInput("Sodium (mEq/L)", controller: preSodiumController),
-              rowInput("Haemoglobin (HB)",
-                  controller: preHaemoglobinController),
-              rowInput("SGOT", controller: preSGOTController),
-              rowInput("SGPT", controller: preSGPTController),
+              rowInput("BUN (mg/dL)", controller: preBunController, readOnly: readOnly),
+              rowInput("Creatinine (mg/dL)", controller: preCreatinineController, readOnly: readOnly),
+              rowInput("Potassium (mEq/L)", controller: prePotassiumController, readOnly: readOnly),
+              rowInput("Sodium (mEq/L)", controller: preSodiumController, readOnly: readOnly),
+              rowInput("Haemoglobin (g/dL)", controller: preHaemoglobinController, readOnly: readOnly),
+              rowInput("SGOT (U/L)", controller: preSGOTController, readOnly: readOnly),
+              rowInput("SGPT (U/L)", controller: preSGPTController, readOnly: readOnly),
             ],
           ),
           sectionCard(
@@ -70,26 +71,17 @@ class LaboratoryValuesPage extends StatelessWidget {
             title: "Post-Treatment Labs",
             icon: Icons.post_add_outlined,
             children: [
-              rowInput("BUN (mg/dL)", controller: postBunController),
-              rowInput("Creatinine (mg/dL)",
-                  controller: postCreatinineController),
-              rowInput("Potassium (mEq/L)",
-                  controller: postPotassiumController),
-              rowInput("Sodium (mEq/L)", controller: postSodiumController),
-              rowInput("Haemoglobin (HB)",
-                  controller: postHaemoglobinController),
-              rowInput("SGOT", controller: postSGOTController),
-              rowInput("SGPT", controller: postSGPTController),
+              rowInput("BUN (mg/dL)", controller: postBunController, readOnly: readOnly),
+              rowInput("Creatinine (mg/dL)", controller: postCreatinineController, readOnly: readOnly),
+              rowInput("Potassium (mEq/L)", controller: postPotassiumController, readOnly: readOnly),
+              rowInput("Sodium (mEq/L)", controller: postSodiumController, readOnly: readOnly),
+              rowInput("Haemoglobin (g/dL)", controller: postHaemoglobinController, readOnly: readOnly),
+              rowInput("SGOT (U/L)", controller: postSGOTController, readOnly: readOnly),
+              rowInput("SGPT (U/L)", controller: postSGPTController, readOnly: readOnly),
             ],
           ),
           const SizedBox(height: 20),
-          actionButtons(
-            context,
-            onCancel: onCancel,
-            onSave: onSave,
-            onComplete: onComplete,
-            onNext: onNext,
-          )
+          actionButtons(context, onSave: onSave, onComplete: onComplete, onNext: onNext, onCancel: onCancel, readOnly: readOnly),
         ],
       ),
     );

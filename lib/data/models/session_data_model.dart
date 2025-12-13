@@ -1,5 +1,11 @@
 import 'dart:convert';
 
+enum SessionStatus {
+  pending, // Session not yet started or explicitly saved as pending
+  in_progress, // Session started and saved, but not completed
+  completed, // Session fully completed
+}
+
 class SessionData {
   final String patientId;
   final DateTime sessionDate;
@@ -7,6 +13,8 @@ class SessionData {
   final TreatmentParameters treatmentParameters;
   final LaboratoryValues laboratoryValues;
   final ClinicalNotes clinicalNotes;
+  final SessionStatus status;
+  final int lastActiveTabIndex;
 
   SessionData({
     required this.patientId,
@@ -15,6 +23,8 @@ class SessionData {
     required this.treatmentParameters,
     required this.laboratoryValues,
     required this.clinicalNotes,
+    this.status = SessionStatus.pending,
+    this.lastActiveTabIndex = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,6 +35,8 @@ class SessionData {
       'treatmentParameters': treatmentParameters.toMap(),
       'laboratoryValues': laboratoryValues.toMap(),
       'clinicalNotes': clinicalNotes.toMap(),
+      'status': status.name,
+      'lastActiveTabIndex': lastActiveTabIndex,
     };
   }
 
@@ -33,15 +45,22 @@ class SessionData {
       patientId: map['patientId'] ?? '',
       sessionDate: DateTime.parse(map['sessionDate']),
       vitalSigns: VitalSigns.fromMap(map['vitalSigns'] ?? {}),
-      treatmentParameters: TreatmentParameters.fromMap(map['treatmentParameters'] ?? {}),
+      treatmentParameters:
+          TreatmentParameters.fromMap(map['treatmentParameters'] ?? {}),
       laboratoryValues: LaboratoryValues.fromMap(map['laboratoryValues'] ?? {}),
       clinicalNotes: ClinicalNotes.fromMap(map['clinicalNotes'] ?? {}),
+      status: SessionStatus.values.firstWhere(
+        (e) => e.name == (map['status'] ?? SessionStatus.pending.name),
+        orElse: () => SessionStatus.pending,
+      ),
+      lastActiveTabIndex: map['lastActiveTabIndex'] ?? 0,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory SessionData.fromJson(String source) => SessionData.fromMap(json.decode(source));
+  factory SessionData.fromJson(String source) =>
+      SessionData.fromMap(json.decode(source));
 }
 
 class VitalSigns {
@@ -73,7 +92,8 @@ class VitalSigns {
 
   String toJson() => json.encode(toMap());
 
-  factory VitalSigns.fromJson(String source) => VitalSigns.fromMap(json.decode(source));
+  factory VitalSigns.fromJson(String source) =>
+      VitalSigns.fromMap(json.decode(source));
 }
 
 class TreatmentParameters {
@@ -105,18 +125,33 @@ class TreatmentParameters {
 
   String toJson() => json.encode(toMap());
 
-  factory TreatmentParameters.fromJson(String source) => TreatmentParameters.fromMap(json.decode(source));
+  factory TreatmentParameters.fromJson(String source) =>
+      TreatmentParameters.fromMap(json.decode(source));
 }
 
 class LaboratoryValues {
   final String hemoglobin;
   final String creatinine;
   final String potassium;
+  final String sodium;
+  final String preHaemoglobin;
+  final String preSGOT;
+  final String preSGPT;
+  final String postHaemoglobin;
+  final String postSGOT;
+  final String postSGPT;
 
   LaboratoryValues({
     required this.hemoglobin,
     required this.creatinine,
     required this.potassium,
+    required this.sodium,
+    required this.preHaemoglobin,
+    required this.preSGOT,
+    required this.preSGPT,
+    required this.postHaemoglobin,
+    required this.postSGOT,
+    required this.postSGPT,
   });
 
   Map<String, dynamic> toMap() {
@@ -124,6 +159,13 @@ class LaboratoryValues {
       'hemoglobin': hemoglobin,
       'creatinine': creatinine,
       'potassium': potassium,
+      'sodium': sodium,
+      'preHaemoglobin': preHaemoglobin,
+      'preSGOT': preSGOT,
+      'preSGPT': preSGPT,
+      'postHaemoglobin': postHaemoglobin,
+      'postSGOT': postSGOT,
+      'postSGPT': postSGPT,
     };
   }
 
@@ -132,12 +174,20 @@ class LaboratoryValues {
       hemoglobin: map['hemoglobin'] ?? '',
       creatinine: map['creatinine'] ?? '',
       potassium: map['potassium'] ?? '',
+      sodium: map['sodium'] ?? '',
+      preHaemoglobin: map['preHaemoglobin'] ?? '',
+      preSGOT: map['preSGOT'] ?? '',
+      preSGPT: map['preSGPT'] ?? '',
+      postHaemoglobin: map['postHaemoglobin'] ?? '',
+      postSGOT: map['postSGOT'] ?? '',
+      postSGPT: map['postSGPT'] ?? '',
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory LaboratoryValues.fromJson(String source) => LaboratoryValues.fromMap(json.decode(source));
+  factory LaboratoryValues.fromJson(String source) =>
+      LaboratoryValues.fromMap(json.decode(source));
 }
 
 class ClinicalNotes {
@@ -146,6 +196,8 @@ class ClinicalNotes {
   final String nursingInterventions;
   final String symptomsDuringTreatment;
   final String complicationsDetails;
+  final String actionTaken;
+  final String remarks;
 
   ClinicalNotes({
     required this.notes,
@@ -153,6 +205,8 @@ class ClinicalNotes {
     required this.nursingInterventions,
     required this.symptomsDuringTreatment,
     required this.complicationsDetails,
+    required this.actionTaken,
+    required this.remarks,
   });
 
   Map<String, dynamic> toMap() {
@@ -162,6 +216,8 @@ class ClinicalNotes {
       'nursingInterventions': nursingInterventions,
       'symptomsDuringTreatment': symptomsDuringTreatment,
       'complicationsDetails': complicationsDetails,
+      'actionTaken': actionTaken,
+      'remarks': remarks,
     };
   }
 
@@ -172,10 +228,13 @@ class ClinicalNotes {
       nursingInterventions: map['nursingInterventions'] ?? '',
       symptomsDuringTreatment: map['symptomsDuringTreatment'] ?? '',
       complicationsDetails: map['complicationsDetails'] ?? '',
+      actionTaken: map['actionTaken'] ?? '',
+      remarks: map['remarks'] ?? '',
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory ClinicalNotes.fromJson(String source) => ClinicalNotes.fromMap(json.decode(source));
+  factory ClinicalNotes.fromJson(String source) =>
+      ClinicalNotes.fromMap(json.decode(source));
 }

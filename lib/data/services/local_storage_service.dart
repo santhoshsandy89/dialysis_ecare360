@@ -405,7 +405,7 @@ class LocalStorageService {
     final key = '$_sessionDataPrefix${sessionData.patientId}_${sessionData.sessionDate.toIso8601String().split('T').first}';
     AppLogger.debug('LOCAL_STORAGE: Saving session data with key: $key, data: ${sessionData.toJson()}');
     await prefs.setString(key, sessionData.toJson());
-    AppLogger.debug('LOCAL_STORAGE: Session data saved for patient: ${sessionData.patientId} on ${sessionData.sessionDate}');
+    AppLogger.debug('LOCAL_STORAGE: Session data saved for patient: ${sessionData.patientId} on ${sessionData.sessionDate} with status: ${sessionData.status.name}');
   }
 
   static Future<SessionData?> fetchSessionData(String patientId, DateTime sessionDate) async {
@@ -418,8 +418,9 @@ class LocalStorageService {
       return null;
     }
     AppLogger.debug('LOCAL_STORAGE: Retrieved session data JSON for key: $key, data: $sessionDataJson');
-    AppLogger.debug('LOCAL_STORAGE: Session data retrieved for patient: $patientId on $sessionDate');
-    return SessionData.fromJson(sessionDataJson);
+    final sessionData = SessionData.fromJson(sessionDataJson);
+    AppLogger.debug('LOCAL_STORAGE: Session data retrieved for patient: $patientId on ${sessionDate} with status: ${sessionData.status.name}');
+    return sessionData;
   }
 
   static Future<bool> hasSessionData(String patientId, DateTime sessionDate) async {
@@ -428,5 +429,43 @@ class LocalStorageService {
     final bool contains = prefs.containsKey(key);
     AppLogger.debug('LOCAL_STORAGE: Checking hasSessionData for key: $key, result: $contains');
     return contains;
+  }
+
+  // New method to update a specific treatment's status
+  static Future<void> updateTreatmentStatus(String patientId, DateTime scheduledDate, SessionStatus newStatus) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> treatmentsJson = prefs.getStringList(treatmentsKey) ?? [];
+    List<Treatment> treatments = treatmentsJson.map((e) => Treatment.fromJson(jsonDecode(e))).toList();
+
+    int index = treatments.indexWhere(
+      (t) => t.patient.mrnNo == patientId && 
+             t.scheduledDate.toIso8601String().split('T').first == scheduledDate.toIso8601String().split('T').first
+    );
+
+    if (index != -1) {
+      Treatment updatedTreatment = treatments[index].copyWith(status: newStatus);
+      treatments[index] = updatedTreatment;
+      await prefs.setStringList(treatmentsKey, treatments.map((e) => jsonEncode(e.toJson())).toList());
+      AppLogger.debug('LOCAL_STORAGE: Updated treatment status for patient: $patientId on $scheduledDate to ${newStatus.name}');
+    } else {
+      AppLogger.warning('LOCAL_STORAGE: Treatment not found for status update: $patientId on $scheduledDate');
+    }
+  }
+
+  // Method to get a specific treatment
+  static Future<Treatment?> getTreatment(String patientId, DateTime scheduledDate) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> treatmentsJson = prefs.getStringList(treatmentsKey) ?? [];
+    List<Treatment> treatments = treatmentsJson.map((e) => Treatment.fromJson(jsonDecode(e))).toList();
+
+    try {
+      return treatments.firstWhere(
+        (t) => t.patient.mrnNo == patientId && 
+               t.scheduledDate.toIso8601String().split('T').first == scheduledDate.toIso8601String().split('T').first
+      );
+    } catch (e) {
+      AppLogger.warning('LOCAL_STORAGE: No matching treatment found for patient: $patientId on $scheduledDate');
+      return null;
+    }
   }
 }

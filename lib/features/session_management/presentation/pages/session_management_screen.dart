@@ -13,12 +13,16 @@ class SessionManagementScreen extends StatefulWidget {
   final PatientModel patient;
   final String treatmentType;
   final DateTime scheduledDate;
+  final SessionStatus initialStatus;
+  final int initialTabIndex;
 
   const SessionManagementScreen({
     super.key,
     required this.patient,
     required this.treatmentType,
     required this.scheduledDate,
+    this.initialStatus = SessionStatus.pending,
+    this.initialTabIndex = 0,
   });
 
   @override
@@ -101,11 +105,14 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
   final TextEditingController _remarksController = TextEditingController();
 
   late TabController _tabController;
+  late SessionStatus _currentSessionStatus;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _currentSessionStatus = widget.initialStatus;
+    _tabController = TabController(
+        length: 4, vsync: this, initialIndex: widget.initialTabIndex);
     _loadSessionData();
   }
 
@@ -118,6 +125,12 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
     final sessionData = await LocalStorageService.fetchSessionData(
         widget.patient.mrnNo, widget.scheduledDate);
     if (sessionData != null) {
+      // Update the current status if data is loaded
+      setState(() {
+        _currentSessionStatus = sessionData.status;
+        _tabController.animateTo(sessionData.lastActiveTabIndex);
+      });
+
       // Vital Signs
       _preWeightController.text = sessionData.vitalSigns.bloodPressure;
       _postWeightController.text = sessionData.vitalSigns.heartRate;
@@ -195,35 +208,13 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
     _patientToleranceController.dispose();
     _symptomsDuringTreatmentController.dispose();
     _complicationsDetailsController.dispose();
+    _actionController.dispose();
+    _remarksController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
-  Future<void> onSavePressed() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Save & Exit?"),
-        content:
-            const Text("Are you sure you want to save your progress and exit?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("No"),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Yes, Save"),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      await _saveSessionData();
-    }
-  }
-
-  Future<void> _saveSessionData() async {
+  Future<void> _saveSessionData(SessionStatus statusToSave) async {
     final vitalSigns = VitalSigns(
       bloodPressure: _preWeightController.text,
       heartRate: _postWeightController.text,
@@ -240,6 +231,13 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       hemoglobin: _preBunController.text,
       creatinine: _preCreatinineController.text,
       potassium: _prePotassiumController.text,
+      sodium: _preSodiumController.text,
+      preHaemoglobin: _preHaemoglobinController.text,
+      preSGOT: _preSGOTController.text,
+      preSGPT: _preSGPTController.text,
+      postHaemoglobin: _postHaemoglobinController.text,
+      postSGOT: _postSGOTController.text,
+      postSGPT: _postSGPTController.text,
     );
 
     final clinicalNotes = ClinicalNotes(
@@ -248,6 +246,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       nursingInterventions: _nursingInterventionsController.text,
       symptomsDuringTreatment: _symptomsDuringTreatmentController.text,
       complicationsDetails: _complicationsDetailsController.text,
+      actionTaken: '',
+      remarks: '',
     );
 
     final sessionData = SessionData(
@@ -257,18 +257,81 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       treatmentParameters: treatmentParameters,
       laboratoryValues: laboratoryValues,
       clinicalNotes: clinicalNotes,
+      status: statusToSave,
+      lastActiveTabIndex: _tabController.index,
     );
 
     await LocalStorageService.saveSessionData(sessionData);
+    await LocalStorageService.updateTreatmentStatus(
+        widget.patient.mrnNo, widget.scheduledDate, statusToSave);
 
     if (mounted) {
-      Navigator.pop(
-          context, true); // Pop with a result to indicate data was saved
+      Navigator.pop(context, statusToSave); // Pop with the new session status
     }
+  }
+
+  Future<void> _onSaveProgressPressed() async {
+    final confirm = await _showConfirmDialog(
+      "Save Progress?",
+      "Are you sure you want to save your progress and exit?",
+    );
+    if (confirm != null) {
+      await _saveSessionData(SessionStatus.in_progress);
+    }
+  }
+
+  Future<void> _onCompleteSessionPressed() async {
+    final confirm = await _showConfirmDialog(
+      "Complete Session?",
+      "Are you sure you want to complete this session? This action cannot be undone.",
+    );
+    if (confirm != null) {
+      await _saveSessionData(SessionStatus.completed);
+    }
+  }
+
+  void _goToNextTab() {
+    if (_tabController.index < _tabController.length - 1) {
+      _tabController.animateTo(_tabController.index + 1);
+    }
+  }
+
+  Future<void> _onCancelPressed() async {
+    final confirm = await _showConfirmDialog(
+      "Cancel Session?",
+      "Are you sure you want to cancel and exit without saving?",
+    );
+    if (confirm != null)
+      Navigator.pop(context, _currentSessionStatus); // Pop with current status
+  }
+
+  Future<SessionStatus?> _showConfirmDialog(
+      String title, String message) async {
+    return await showDialog<SessionStatus?>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, null), // Cancel dialog
+                child: const Text("No"),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, _currentSessionStatus),
+                // Confirm action, return current status
+                child: const Text("Yes"),
+              ),
+            ],
+          ),
+        ) ??
+        null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isSessionCompleted =
+        _currentSessionStatus == SessionStatus.completed;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.white, // Dark Green
@@ -304,12 +367,6 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               ),
             ],
           ),
-          actions: const [
-            // IconButton(
-            //   icon: const Icon(Icons.save, color: Colors.white),
-            //   onPressed: _saveSessionData,
-            // ),
-          ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
             child: Container(
@@ -356,10 +413,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               postTempController: _postTempController,
               preSpo2Controller: _preSpo2Controller,
               postSpo2Controller: _postSpo2Controller,
-              onSave: onSavePressed,
-              onComplete: onSavePressed,
+              onSave: _onSaveProgressPressed,
+              onComplete: _onCompleteSessionPressed,
               onNext: _goToNextTab,
               onCancel: _onCancelPressed,
+              readOnly: isSessionCompleted,
             ),
             TreatmentParametersPage(
               actualBloodFlowRateController: _actualBloodFlowRateController,
@@ -374,10 +432,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               heparinRateController: _heparinRateController,
               needleSizeController: _needleSizeController,
               tmpController: _tmpController,
-              onSave: onSavePressed,
-              onComplete: onSavePressed,
+              onSave: _onSaveProgressPressed,
+              onComplete: _onCompleteSessionPressed,
               onNext: _goToNextTab,
               onCancel: _onCancelPressed,
+              readOnly: isSessionCompleted,
             ),
             LaboratoryValuesPage(
               preBunController: _preBunController,
@@ -394,10 +453,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               postHaemoglobinController: _postHaemoglobinController,
               postSGOTController: _postSGOTController,
               postSGPTController: _postSGPTController,
-              onSave: onSavePressed,
-              onComplete: onSavePressed,
+              onSave: _onSaveProgressPressed,
+              onComplete: _onCompleteSessionPressed,
               onNext: _goToNextTab,
               onCancel: _onCancelPressed,
+              readOnly: isSessionCompleted,
             ),
             ClinicalNotesPage(
               machineAlarmsController: _machineAlarmsController,
@@ -408,48 +468,14 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               actionTakenController: _actionController,
               complicationsDetailsController: _complicationsDetailsController,
               remarksController: _remarksController,
-              onSave: onSavePressed,
-              onComplete: onSavePressed,
+              onSave: _onSaveProgressPressed,
+              onComplete: _onCompleteSessionPressed,
               onCancel: _onCancelPressed,
+              readOnly: isSessionCompleted,
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _goToNextTab() {
-    if (_tabController.index < _tabController.length - 1) {
-      _tabController.animateTo(_tabController.index + 1);
-    }
-  }
-
-  Future<void> _onCancelPressed() async {
-    final confirm = await _showConfirmDialog(
-      "Cancel?",
-      "Are you sure you want to cancel?",
-    );
-    if (confirm) Navigator.pop(context);
-  }
-
-  Future<bool> _showConfirmDialog(String title, String message) async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text("No"),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text("Yes"),
-              ),
-            ],
-          ),
-        ) ??
-        false;
   }
 }

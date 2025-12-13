@@ -11,20 +11,25 @@ class ClinicalNotesPage extends StatelessWidget {
   final TextEditingController remarksController;
   final VoidCallback? onSave;
   final VoidCallback? onComplete;
+  final VoidCallback? onNext;
   final VoidCallback? onCancel;
+  final bool readOnly;
 
-  const ClinicalNotesPage(
-      {super.key,
-      required this.machineAlarmsController,
-      required this.nursingInterventionsController,
-      required this.patientToleranceController,
-      required this.symptomsDuringTreatmentController,
-      required this.actionTakenController,
-      required this.complicationsDetailsController,
-      required this.remarksController,
-      this.onSave,
-      this.onComplete,
-      this.onCancel});
+  const ClinicalNotesPage({
+    super.key,
+    required this.machineAlarmsController,
+    required this.nursingInterventionsController,
+    required this.patientToleranceController,
+    required this.symptomsDuringTreatmentController,
+    required this.actionTakenController,
+    required this.complicationsDetailsController,
+    required this.remarksController,
+    this.onSave,
+    this.onComplete,
+    this.onNext,
+    this.onCancel,
+    this.readOnly = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +52,7 @@ class ClinicalNotesPage extends StatelessWidget {
                   TextField(
                     controller: machineAlarmsController,
                     maxLines: 3,
+                    readOnly: readOnly,
                     decoration: const InputDecoration(
                       labelText: "Machine Alarms",
                       hintText: "Document any machine alarms...",
@@ -57,6 +63,7 @@ class ClinicalNotesPage extends StatelessWidget {
                   TextField(
                     controller: nursingInterventionsController,
                     maxLines: 3,
+                    readOnly: readOnly,
                     decoration: const InputDecoration(
                       labelText: "Nursing Interventions",
                       hintText: "Document interventions performed...",
@@ -64,7 +71,7 @@ class ClinicalNotesPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField(
+                  DropdownButtonFormField<String>(
                     value: patientToleranceController.text.isNotEmpty
                         ? patientToleranceController.text
                         : null,
@@ -73,18 +80,26 @@ class ClinicalNotesPage extends StatelessWidget {
                       border: OutlineInputBorder(),
                     ),
                     items: ["Good", "Moderate", "Poor"]
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .map(
+                          (e) => DropdownMenuItem<String>(
+                            value: e,
+                            child: Text(e),
+                          ),
+                        )
                         .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        patientToleranceController.text = value;
-                      }
-                    },
+                    onChanged: readOnly
+                        ? null
+                        : (String? value) {
+                            if (value != null) {
+                              patientToleranceController.text = value;
+                            }
+                          },
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: symptomsDuringTreatmentController,
                     maxLines: 3,
+                    readOnly: readOnly,
                     decoration: const InputDecoration(
                       labelText: "Symptoms During Treatment",
                       hintText: "Document any symptoms reported...",
@@ -93,18 +108,9 @@ class ClinicalNotesPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   TextField(
-                    controller: actionTakenController,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: "Action Taken",
-                      hintText: "Document any symptoms reported...",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
                     controller: complicationsDetailsController,
                     maxLines: 3,
+                    readOnly: readOnly,
                     decoration: const InputDecoration(
                       labelText: "Complications Details",
                       hintText: "Document any complications...",
@@ -113,11 +119,23 @@ class ClinicalNotesPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: actionTakenController,
+                    maxLines: 3,
+                    readOnly: readOnly,
+                    decoration: const InputDecoration(
+                      labelText: "Action Taken",
+                      hintText: "Document actions taken...",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
                     controller: remarksController,
                     maxLines: 3,
+                    readOnly: readOnly,
                     decoration: const InputDecoration(
                       labelText: "Remarks",
-                      hintText: "Document any complications...",
+                      hintText: "Any additional remarks...",
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -126,12 +144,12 @@ class ClinicalNotesPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          actionButtons(
-            context,
-            onCancel: onCancel,
-            onSave: onSave,
-            onComplete: onComplete,
-          )
+          actionButtons(context,
+              onSave: onSave,
+              onComplete: onComplete,
+              onNext: onNext,
+              onCancel: onCancel,
+              readOnly: readOnly),
         ],
       ),
     );

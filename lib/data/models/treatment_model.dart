@@ -1,6 +1,7 @@
 import 'package:ecare360/data/models/patient_model.dart';
 import 'package:ecare360/features/schedule_treatment/presentation/pages/schedule_treatment_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:ecare360/data/models/session_data_model.dart';
 
 class Treatment {
   final PatientModel patient;
@@ -12,10 +13,9 @@ class Treatment {
   final BloodAccessType accessType;
   final int? ufGoal;
   final String notes;
-  final bool isCompleted;
-  final bool isInProgress;
   final TreatmentMainType treatmentMainType;
   final CrrtSubType? crrtSubType;
+  final SessionStatus status;
 
   Treatment({
     required this.patient,
@@ -27,11 +27,40 @@ class Treatment {
     required this.accessType,
     this.ufGoal,
     required this.notes,
-    this.isCompleted = false,
-    this.isInProgress = false,
     required this.treatmentMainType,
     this.crrtSubType,
+    this.status = SessionStatus.pending,
   });
+
+  Treatment copyWith({
+    PatientModel? patient,
+    DateTime? scheduledDate,
+    TimeOfDay? scheduledTime,
+    int? durationMinutes,
+    String? location,
+    String? nurse,
+    BloodAccessType? accessType,
+    int? ufGoal,
+    String? notes,
+    TreatmentMainType? treatmentMainType,
+    CrrtSubType? crrtSubType,
+    SessionStatus? status,
+  }) {
+    return Treatment(
+      patient: patient ?? this.patient,
+      scheduledDate: scheduledDate ?? this.scheduledDate,
+      scheduledTime: scheduledTime ?? this.scheduledTime,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      location: location ?? this.location,
+      nurse: nurse ?? this.nurse,
+      accessType: accessType ?? this.accessType,
+      ufGoal: ufGoal ?? this.ufGoal,
+      notes: notes ?? this.notes,
+      treatmentMainType: treatmentMainType ?? this.treatmentMainType,
+      crrtSubType: crrtSubType ?? this.crrtSubType,
+      status: status ?? this.status,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -46,8 +75,7 @@ class Treatment {
       'accessType': accessType.name,
       'ufGoal': ufGoal,
       'notes': notes,
-      'completed': isCompleted,
-      'inProgress': isInProgress,
+      'status': status.name,
     };
   }
 
@@ -73,8 +101,10 @@ class Treatment {
           .firstWhere((e) => e.name == json['accessType']),
       ufGoal: json['ufGoal'],
       notes: json['notes'],
-      isInProgress: json['inProgress'] ?? false,
-      isCompleted: json['completed'] ?? false,
+      status: SessionStatus.values.firstWhere(
+        (e) => e.name == (json['status'] ?? SessionStatus.pending.name),
+        orElse: () => SessionStatus.pending,
+      ),
     );
   }
 }
