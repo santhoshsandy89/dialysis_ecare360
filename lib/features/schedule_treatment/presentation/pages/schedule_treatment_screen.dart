@@ -1,5 +1,8 @@
+import 'package:dropdown_search/dropdown_search.dart';
+import 'package:ecare360/core/utils/logger.dart';
 import 'package:ecare360/core/widgets/custom_button.dart';
 import 'package:ecare360/core/widgets/custom_text_field.dart';
+import 'package:ecare360/data/models/patient_id_model.dart';
 import 'package:ecare360/data/models/patient_model.dart';
 import 'package:ecare360/data/models/session_data_model.dart';
 import 'package:ecare360/data/models/treatment_model.dart';
@@ -14,13 +17,29 @@ import 'package:intl/intl.dart';
 
 import '../../../session_management/presentation/pages/report_viewer_screen.dart';
 import '../providers/schedule_treatment_provider.dart';
-import 'package:ecare360/core/utils/logger.dart';
 
 enum TreatmentType { Hemodialysis, PeritonealDialysis }
 
 enum TempPatientName { Ram, Kumar, David }
 
 enum BloodAccessType { Fistula, Graft, Catheter }
+
+enum BloodAccessSubType { IJV, Femoral, PermCatheter }
+
+enum TreatmentMainType {
+  CRRT,
+  Hemoperfusion,
+  Plasmapheresis,
+  Hemodiafiltration,
+}
+
+enum CrrtSubType {
+  CVVHD,
+  CVVHF,
+  CVVHDF,
+  SCUF,
+  SLED,
+}
 
 class ScheduleTreatmentSection extends ConsumerStatefulWidget {
   const ScheduleTreatmentSection({super.key});
@@ -131,12 +150,17 @@ class _ScheduleTreatmentSectionState
                         padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
                         child: Column(
                           children: [
-                            _buildDropdownField(
+                            buildPatientSearchDropdown(patients),
+                            /*_buildDropdownField(
                               'Patient MRN',
                               _selectedPatientMrn,
                               patients
-                                  .map((p) => p.id)
-                                  .toList(), // list of MRNs
+                                  .map((p) => {
+                                        'value': p.id, // real value!
+                                        'display':
+                                            '${p.id} - ${p.username} ${p.lastName}',
+                                      })
+                                  .toList(),
                               (String? newValue) {
                                 final patient = patients
                                     .firstWhere((p) => p.id == newValue);
@@ -149,14 +173,7 @@ class _ScheduleTreatmentSectionState
                                 });
                               },
                               true,
-                              displayValueMap: patients
-                                  .map((p) => {
-                                        'display':
-                                            '${p.id} - ${p.username} ${p.lastName}',
-                                        'value': p.id
-                                      })
-                                  .toList(),
-                            ),
+                            ),*/
                             const SizedBox(height: 16),
 
                             CustomTextField(
@@ -231,11 +248,14 @@ class _ScheduleTreatmentSectionState
                                 if (_formKey.currentState!.validate()) {
                                   if (_selectedPatientMrn == null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Please select a patient MRN.")),
+                                      const SnackBar(
+                                          content: Text(
+                                              "Please select a patient MRN.")),
                                     );
                                     return;
                                   }
-                                  AppLogger.debug('ADD_PATIENT_MODAL: _selectedPatientMrn: $_selectedPatientMrn');
+                                  AppLogger.debug(
+                                      'ADD_PATIENT_MODAL: _selectedPatientMrn: $_selectedPatientMrn');
                                   final patient = PatientModel(
                                     mrnNo: _selectedPatientMrn!,
                                     firstName: _firstNameController.text,
@@ -287,6 +307,33 @@ class _ScheduleTreatmentSectionState
     DateTime? scheduleDate;
     TimeOfDay? scheduleTime;
 
+    const Map<BloodAccessType, String> bloodAccessTypeLabels = {
+      BloodAccessType.Fistula: "Fistula",
+      BloodAccessType.Graft: "Graft",
+      BloodAccessType.Catheter: "Catheter",
+    };
+
+    const Map<BloodAccessSubType, String> catheterSubTypeLabels = {
+      BloodAccessSubType.IJV: "IJV (Internal Jugular Vein)",
+      BloodAccessSubType.Femoral: "Femoral",
+      BloodAccessSubType.PermCatheter: "Perm Catheter",
+    };
+
+    const Map<TreatmentMainType, String> treatmentMainLabels = {
+      TreatmentMainType.CRRT: "CRRT (Continuous Renal Replacement Therapy)",
+      TreatmentMainType.Hemoperfusion: "Hemoperfusion",
+      TreatmentMainType.Plasmapheresis: "Plasmapheresis",
+      TreatmentMainType.Hemodiafiltration: "Hemodiafiltration",
+    };
+
+    const Map<CrrtSubType, String> crrtSubLabels = {
+      CrrtSubType.CVVHD: "CVVHD (Continuous Veno-Venous Hemodialysis)",
+      CrrtSubType.CVVHF: "CVVHF (Continuous Veno-Venous Hemofiltration)",
+      CrrtSubType.CVVHDF: "CVVHDF (Continuous Veno-Venous Hemodiafiltration)",
+      CrrtSubType.SCUF: "SCUF (Slow Continuous Ultrafiltration)",
+      CrrtSubType.SLED: "SLED (Sustained Low-Efficiency Dialysis)",
+    };
+
     final durationController = TextEditingController();
     final locationController = TextEditingController();
     final nurseController = TextEditingController();
@@ -296,9 +343,11 @@ class _ScheduleTreatmentSectionState
     final storageState = ref.watch(localStorageProvider);
     final patientList = storageState.patients;
 
-    BloodAccessType? accessType;
-    TreatmentType? treatmentType;
     PatientModel? selectedPatient;
+    TreatmentMainType? mainType;
+    CrrtSubType? crrtSubType;
+    BloodAccessType? accessType;
+    BloodAccessSubType? bloodAccessSubType;
 
     showModalBottomSheet(
       context: context,
@@ -381,7 +430,8 @@ class _ScheduleTreatmentSectionState
                             onChanged: (value) {
                               setState(() {
                                 selectedPatient = value;
-                                AppLogger.debug('SCHEDULE_TREATMENT_BOTTOM_SHEET: Selected Patient MRN: ${selectedPatient?.mrnNo}');
+                                AppLogger.debug(
+                                    'SCHEDULE_TREATMENT_BOTTOM_SHEET: Selected Patient MRN: ${selectedPatient?.mrnNo}');
                               });
                             },
                             validator: (v) =>
@@ -390,22 +440,48 @@ class _ScheduleTreatmentSectionState
                           const SizedBox(height: 16),
 
                           // TREATMENT TYPE
-                          DropdownButtonFormField<TreatmentType>(
-                            value: treatmentType,
+                          DropdownButtonFormField<TreatmentMainType>(
+                            value: mainType,
                             decoration: const InputDecoration(
                               labelText: "Treatment Type",
                               border: OutlineInputBorder(),
                             ),
-                            onChanged: (v) => setState(() => treatmentType = v),
-                            items: TreatmentType.values
-                                .map((t) => DropdownMenuItem(
-                                      value: t,
-                                      child: Text(t.name),
-                                    ))
-                                .toList(),
+                            items: TreatmentMainType.values.map((t) {
+                              return DropdownMenuItem(
+                                value: t,
+                                child: Text(treatmentMainLabels[t]!),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                mainType = value;
+                                crrtSubType = null; // reset sub option
+                              });
+                            },
                           ),
                           const SizedBox(height: 16),
 
+                          if (mainType == TreatmentMainType.CRRT)
+                            DropdownButtonFormField<CrrtSubType>(
+                              value: crrtSubType,
+                              decoration: const InputDecoration(
+                                labelText: "CRRT Sub Type",
+                                border: OutlineInputBorder(),
+                              ),
+                              items: CrrtSubType.values.map((t) {
+                                return DropdownMenuItem(
+                                  value: t,
+                                  child: Text(crrtSubLabels[t]!),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  crrtSubType = value;
+                                });
+                              },
+                            ),
+
+                          const SizedBox(height: 16),
                           // SCHEDULE DATE
                           CustomTextField(
                             labelText: "Scheduled Date",
@@ -496,14 +572,40 @@ class _ScheduleTreatmentSectionState
                               labelText: "Access Type",
                               border: OutlineInputBorder(),
                             ),
-                            onChanged: (v) => setState(() => accessType = v),
                             items: BloodAccessType.values
                                 .map((t) => DropdownMenuItem(
                                       value: t,
-                                      child: Text(t.name),
+                                      child: Text(bloodAccessTypeLabels[t]!),
                                     ))
                                 .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                accessType = value;
+                                bloodAccessSubType = null;
+                              });
+                            },
                           ),
+
+                          const SizedBox(height: 16),
+                          if (accessType == BloodAccessType.Catheter)
+                            DropdownButtonFormField<BloodAccessSubType>(
+                              value: bloodAccessSubType,
+                              decoration: const InputDecoration(
+                                labelText: "Catheter Sub Type",
+                                border: OutlineInputBorder(),
+                              ),
+                              items: BloodAccessSubType.values.map((t) {
+                                return DropdownMenuItem(
+                                  value: t,
+                                  child: Text(catheterSubTypeLabels[t]!),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  bloodAccessSubType = value;
+                                });
+                              },
+                            ),
                           const SizedBox(height: 16),
 
                           // UF GOAL
@@ -527,7 +629,7 @@ class _ScheduleTreatmentSectionState
                             icon: Icons.event_available,
                             onPressed: () async {
                               if (selectedPatient == null ||
-                                  treatmentType == null ||
+                                  mainType == null ||
                                   scheduleDate == null ||
                                   scheduleTime == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -540,7 +642,10 @@ class _ScheduleTreatmentSectionState
 
                               final treatment = Treatment(
                                 patient: selectedPatient!,
-                                treatmentType: treatmentType!,
+                                treatmentMainType: mainType!,
+                                crrtSubType: mainType == TreatmentMainType.CRRT
+                                    ? crrtSubType
+                                    : null,
                                 scheduledDate: scheduleDate!,
                                 scheduledTime: scheduleTime!,
                                 durationMinutes:
@@ -732,6 +837,9 @@ class _ScheduleTreatmentSectionState
                             .removeScheduledTreatment(i);
                       },
                       patientId: scheduledListController[i].patient.mrnNo,
+                      onSessionCompleted: () {
+                        setState(() {});
+                      },
                     ),
                     if (i != scheduledListController.length - 1)
                       const Divider(height: 24),
@@ -746,37 +854,72 @@ class _ScheduleTreatmentSectionState
 
   // Helper method for dropdown fields
   // Helper method for dropdown fields (SAFE VERSION)
+  Widget buildPatientSearchDropdown(List<PatientIDModel> patients) {
+    PatientIDModel? selectedPatient =
+        patients.any((p) => p.id == _selectedPatientMrn)
+            ? patients.firstWhere((p) => p.id == _selectedPatientMrn)
+            : null;
+    return DropdownSearch<PatientIDModel>(
+      popupProps: PopupProps.dialog(
+        showSearchBox: true,
+        searchFieldProps: const TextFieldProps(
+          decoration: InputDecoration(
+            labelText: "Search MRN",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        itemBuilder: (context, patient, isSelected) {
+          return ListTile(
+            title:
+                Text("${patient.id} - ${patient.username} ${patient.lastName}"),
+          );
+        },
+      ),
+      items: patients,
+      itemAsString: (PatientIDModel p) =>
+          "${p.id} - ${p.username} ${p.lastName}",
+      dropdownDecoratorProps: const DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          labelText: "Patient MRN *",
+          border: OutlineInputBorder(),
+        ),
+      ),
+      selectedItem: selectedPatient,
+      onChanged: (PatientIDModel? p) {
+        if (p == null) return;
+
+        setState(() {
+          _selectedPatientMrn = p.id;
+          _firstNameController.text = p.username;
+          _lastNameController.text = p.lastName;
+          _phoneController.text = p.phone;
+          _emailController.text = p.email;
+        });
+      },
+    );
+  }
+
   Widget _buildDropdownField(
     String label,
     String? selectedValue,
-    List<String> items,
+    List<Map<String, dynamic>> displayValueMap,
     ValueChanged<String?> onChanged,
-    bool isRequired, {
-    List<Map<String, dynamic>>? displayValueMap,
-  }) {
-    // If using displayValueMap → rebuild items from it
-    final dropdownItems = displayValueMap != null
-        ? displayValueMap.map((map) => map['display'] as String).toList()
-        : items;
-
-    // Prevent Flutter crash: value must be in items
-    final safeValue =
-        dropdownItems.contains(selectedValue) ? selectedValue : null;
-
+    bool isRequired,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: DropdownButtonFormField<String>(
-        value: safeValue,
+        value: selectedValue,
         decoration: InputDecoration(
           labelText: '$label${isRequired ? ' *' : ''}',
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
-        items: dropdownItems.map<DropdownMenuItem<String>>((String value) {
+        items: displayValueMap.map((map) {
           return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
+            value: map['value'], // <-- real ID
+            child: Text(map['display']), // <-- nice label
           );
         }).toList(),
         onChanged: onChanged,
@@ -795,11 +938,13 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
   final Treatment treatment;
   final VoidCallback onDelete;
   final String patientId;
+  final VoidCallback onSessionCompleted;
 
   const _ScheduledTreatmentItem({
     required this.treatment,
     required this.onDelete,
     required this.patientId,
+    required this.onSessionCompleted,
   });
 
   @override
@@ -809,14 +954,17 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
     final formattedTime = treatment.scheduledTime.format(context);
 
     return FutureBuilder<SessionData?>(
-      future: LocalStorageService.fetchSessionData(patientId, treatment.scheduledDate),
+      future: LocalStorageService.fetchSessionData(
+          patientId, treatment.scheduledDate),
       builder: (context, snapshot) {
-        AppLogger.debug('SCHEDULE_ITEM: Checking patient: $patientId, date: ${treatment.scheduledDate.toIso8601String().split('T').first}');
+        AppLogger.debug(
+            'SCHEDULE_ITEM: Checking patient: $patientId, date: ${treatment.scheduledDate.toIso8601String().split('T').first}');
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
         } else if (snapshot.hasError) {
-          AppLogger.error('SCHEDULE_ITEM: Error fetching session data for $patientId on ${treatment.scheduledDate.toIso8601String().split('T').first}: ${snapshot.error}');
+          AppLogger.error(
+              'SCHEDULE_ITEM: Error fetching session data for $patientId on ${treatment.scheduledDate.toIso8601String().split('T').first}: ${snapshot.error}');
           return Text('Error: ${snapshot.error}');
         }
 
@@ -825,8 +973,10 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
             sessionData.sessionDate.toIso8601String().split('T').first ==
                 treatment.scheduledDate.toIso8601String().split('T').first;
 
-        AppLogger.debug('SCHEDULE_ITEM: Patient: $patientId, Scheduled Date: ${treatment.scheduledDate.toIso8601String().split('T').first}, SessionData found: ${sessionData != null}, Dates match: $hasData');
-        AppLogger.debug('SCHEDULE_ITEM: Final hasData for $patientId on ${treatment.scheduledDate.toIso8601String().split('T').first}: $hasData');
+        AppLogger.debug(
+            'SCHEDULE_ITEM: Patient: $patientId, Scheduled Date: ${treatment.scheduledDate.toIso8601String().split('T').first}, SessionData found: ${sessionData != null}, Dates match: $hasData');
+        AppLogger.debug(
+            'SCHEDULE_ITEM: Final hasData for $patientId on ${treatment.scheduledDate.toIso8601String().split('T').first}: $hasData');
 
         return Row(
           children: [
@@ -853,7 +1003,7 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "${treatment.treatmentType.name} • $formattedDate $formattedTime",
+                    "${treatment.treatmentMainType.name} • $formattedDate $formattedTime",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -875,34 +1025,44 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_)
-                                            => ReportViewerScreen(patientId: patientId, sessionDate: treatment.scheduledDate),
+                                        builder: (_) => ReportViewerScreen(
+                                            patientId: patientId,
+                                            sessionDate:
+                                                treatment.scheduledDate),
                                       ),
                                     );
                                   }
-                                : () {
-                                    Navigator.push(
+                                : () async {
+                                    final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => SessionManagementScreen(
                                           patient: treatment.patient,
-                                          treatmentType: treatment
-                                              .treatmentType.name, // or dynamically pass schedule.treatmentType
-                                          scheduledDate: treatment.scheduledDate,
+                                          treatmentType:
+                                              treatment.treatmentMainType.name,
+                                          // or dynamically pass schedule.treatmentType
+                                          scheduledDate:
+                                              treatment.scheduledDate,
                                         ),
                                       ),
                                     );
+                                    if (result == true) {
+                                      onSessionCompleted();
+                                    }
                                     ref
-                                        .read(scheduleTreatmentProvider.notifier)
+                                        .read(
+                                            scheduleTreatmentProvider.notifier)
                                         .startSession(treatment.patient,
-                                            treatment.treatmentType.name);
+                                            treatment.treatmentMainType.name);
                                   },
                             icon: Icon(
                                 hasData ? Icons.visibility : Icons.play_arrow,
                                 color: Colors.white),
-                            label: Text(hasData ? "View Report" : "Start Session"),
+                            label:
+                                Text(hasData ? "View Report" : "Start Session"),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: hasData ? Colors.blue : Colors.green,
+                              backgroundColor:
+                                  hasData ? Colors.blue : Colors.green,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 8),

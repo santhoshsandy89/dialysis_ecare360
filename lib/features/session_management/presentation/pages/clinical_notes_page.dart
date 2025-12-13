@@ -6,20 +6,25 @@ class ClinicalNotesPage extends StatelessWidget {
   final TextEditingController nursingInterventionsController;
   final TextEditingController patientToleranceController;
   final TextEditingController symptomsDuringTreatmentController;
+  final TextEditingController actionTakenController;
   final TextEditingController complicationsDetailsController;
+  final TextEditingController remarksController;
   final VoidCallback? onSave;
   final VoidCallback? onComplete;
+  final VoidCallback? onCancel;
 
-  const ClinicalNotesPage({
-    super.key,
-    required this.machineAlarmsController,
-    required this.nursingInterventionsController,
-    required this.patientToleranceController,
-    required this.symptomsDuringTreatmentController,
-    required this.complicationsDetailsController,
-    this.onSave,
-    this.onComplete,
-  });
+  const ClinicalNotesPage(
+      {super.key,
+      required this.machineAlarmsController,
+      required this.nursingInterventionsController,
+      required this.patientToleranceController,
+      required this.symptomsDuringTreatmentController,
+      required this.actionTakenController,
+      required this.complicationsDetailsController,
+      required this.remarksController,
+      this.onSave,
+      this.onComplete,
+      this.onCancel});
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +65,9 @@ class ClinicalNotesPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField(
-                    value: patientToleranceController.text.isNotEmpty ? patientToleranceController.text : null,
+                    value: patientToleranceController.text.isNotEmpty
+                        ? patientToleranceController.text
+                        : null,
                     decoration: const InputDecoration(
                       labelText: "Patient Tolerance",
                       border: OutlineInputBorder(),
@@ -86,10 +93,30 @@ class ClinicalNotesPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: actionTakenController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: "Action Taken",
+                      hintText: "Document any symptoms reported...",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
                     controller: complicationsDetailsController,
                     maxLines: 3,
                     decoration: const InputDecoration(
                       labelText: "Complications Details",
+                      hintText: "Document any complications...",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: remarksController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: "Remarks",
                       hintText: "Document any complications...",
                       border: OutlineInputBorder(),
                     ),
@@ -99,7 +126,12 @@ class ClinicalNotesPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          actionButtons(context, onSave: onSave, onComplete: onComplete),
+          actionButtons(
+            context,
+            onCancel: onCancel,
+            onSave: onSave,
+            onComplete: onComplete,
+          )
         ],
       ),
     );

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 class Treatment {
   final PatientModel patient;
-  final TreatmentType treatmentType;
   final DateTime scheduledDate;
   final TimeOfDay scheduledTime;
   final int durationMinutes;
@@ -15,10 +14,11 @@ class Treatment {
   final String notes;
   final bool isCompleted;
   final bool isInProgress;
+  final TreatmentMainType treatmentMainType;
+  final CrrtSubType? crrtSubType;
 
   Treatment({
     required this.patient,
-    required this.treatmentType,
     required this.scheduledDate,
     required this.scheduledTime,
     required this.durationMinutes,
@@ -29,12 +29,15 @@ class Treatment {
     required this.notes,
     this.isCompleted = false,
     this.isInProgress = false,
+    required this.treatmentMainType,
+    this.crrtSubType,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'patient': patient.toJson(), // FIXED
-      'treatmentType': treatmentType.name,
+      'patient': patient.toJson(),
+      'treatmentMainType': treatmentMainType.name,
+      'crrtSubType': crrtSubType?.name,
       'scheduledDate': scheduledDate.toIso8601String(),
       'scheduledTime': '${scheduledTime.hour}:${scheduledTime.minute}',
       'durationMinutes': durationMinutes,
@@ -53,9 +56,11 @@ class Treatment {
 
     return Treatment(
       patient: PatientModel.fromJson(json['patient']),
-      // FIXED
-      treatmentType: TreatmentType.values
-          .firstWhere((e) => e.name == json['treatmentType']),
+      treatmentMainType: TreatmentMainType.values
+          .firstWhere((e) => e.name == json['treatmentMainType']),
+      crrtSubType: json['crrtSubType'] == null
+          ? null
+          : CrrtSubType.values.firstWhere((e) => e.name == json['crrtSubType']),
       scheduledDate: DateTime.parse(json['scheduledDate']),
       scheduledTime: TimeOfDay(
         hour: int.tryParse(timeParts[0]) ?? 0,

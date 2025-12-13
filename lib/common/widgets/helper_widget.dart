@@ -70,33 +70,79 @@ Widget sectionCard(
   );
 }
 
-Widget actionButtons(BuildContext context, {VoidCallback? onSave, VoidCallback? onComplete}) {
+Widget actionButtons(
+  BuildContext context, {
+  VoidCallback? onSave,
+  VoidCallback? onComplete,
+  VoidCallback? onNext,
+  VoidCallback? onCancel,
+}) {
   return Padding(
     padding: const EdgeInsets.only(top: 20, bottom: 40),
     child: Row(
       children: [
+        // CANCEL
         Expanded(
           child: OutlinedButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: onCancel,
             child: const Text("Cancel"),
           ),
         ),
         const SizedBox(width: 16),
+
+        // SAVE PROGRESS
         Expanded(
           child: ElevatedButton(
-            onPressed: onSave, // Use the provided onSave callback
+            onPressed: onSave,
             child: const Text("Save Progress"),
           ),
         ),
         const SizedBox(width: 16),
+
+        // COMPLETE SESSION
         Expanded(
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: onComplete, // Use the provided onComplete callback
+            onPressed: onComplete,
             child: const Text("Complete Session"),
+          ),
+        ),
+        const SizedBox(width: 16),
+
+        // NEXT BUTTON
+        Expanded(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            onPressed: onNext,
+            child: const Text("Next"),
           ),
         ),
       ],
     ),
   );
+}
+
+Future<bool> showConfirmDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+}) async {
+  return await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("No"),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Yes"),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 }

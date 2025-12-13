@@ -172,7 +172,7 @@ class TreatmentItem extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                "${treatment.treatmentType.name} • $formattedDate $formattedTime",
+                "${treatment.treatmentMainType.name} • $formattedDate $formattedTime",
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),

@@ -35,8 +35,8 @@ class _CombinedLoginScreenState extends ConsumerState<CombinedLoginScreen> {
     super.initState();
     _loadSavedCredentials();
 
-    _emailController.text = "samuel.j@yanthralabs.com";
-    _passwordController.text = "yanthra123";
+    /*_emailController.text = "samuel.j@yanthralabs.com";
+    _passwordController.text = "yanthra123";*/
   }
 
   @override

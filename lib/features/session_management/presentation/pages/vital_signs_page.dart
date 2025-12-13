@@ -19,6 +19,8 @@ class VitalSignsPage extends StatelessWidget {
   final TextEditingController postSpo2Controller;
   final VoidCallback? onSave;
   final VoidCallback? onComplete;
+  final VoidCallback? onNext;
+  final VoidCallback? onCancel;
 
   const VitalSignsPage({
     super.key,
@@ -39,6 +41,8 @@ class VitalSignsPage extends StatelessWidget {
     required this.postSpo2Controller,
     this.onSave,
     this.onComplete,
+    this.onNext,
+    this.onCancel,
   });
 
   @override
@@ -92,7 +96,13 @@ class VitalSignsPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          actionButtons(context, onSave: onSave, onComplete: onComplete),
+          actionButtons(
+            context,
+            onCancel: onCancel,
+            onSave: onSave,
+            onComplete: onComplete,
+            onNext: onNext,
+          )
         ],
       ),
     );

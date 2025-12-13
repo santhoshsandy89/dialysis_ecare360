@@ -26,7 +26,8 @@ class SessionManagementScreen extends StatefulWidget {
       _SessionManagementScreenState();
 }
 
-class _SessionManagementScreenState extends State<SessionManagementScreen> {
+class _SessionManagementScreenState extends State<SessionManagementScreen>
+    with TickerProviderStateMixin {
   // Vital Signs Controllers
   final TextEditingController _preWeightController = TextEditingController();
   final TextEditingController _postWeightController = TextEditingController();
@@ -38,50 +39,84 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
   final TextEditingController _postSystolicController = TextEditingController();
   final TextEditingController _preDiastolicController = TextEditingController();
   final TextEditingController _midDiastolicController = TextEditingController();
-  final TextEditingController _postDiastolicController = TextEditingController();
+  final TextEditingController _postDiastolicController =
+      TextEditingController();
   final TextEditingController _preTempController = TextEditingController();
   final TextEditingController _postTempController = TextEditingController();
   final TextEditingController _preSpo2Controller = TextEditingController();
   final TextEditingController _postSpo2Controller = TextEditingController();
 
   // Treatment Parameters Controllers
-  final TextEditingController _actualBloodFlowRateController = TextEditingController();
-  final TextEditingController _totalBloodProcessedController = TextEditingController();
+  final TextEditingController _actualBloodFlowRateController =
+      TextEditingController();
+  final TextEditingController _totalBloodProcessedController =
+      TextEditingController();
   final TextEditingController _dialyzerTypeController = TextEditingController();
-  final TextEditingController _arterialPressureController = TextEditingController();
-  final TextEditingController _actualDialysateFlowRateController = TextEditingController();
+  final TextEditingController _arterialPressureController =
+      TextEditingController();
+  final TextEditingController _actualDialysateFlowRateController =
+      TextEditingController();
   final TextEditingController _heparinBolusController = TextEditingController();
-  final TextEditingController _venousPressureController = TextEditingController();
-  final TextEditingController _actualUltrafiltrationController = TextEditingController();
+  final TextEditingController _venousPressureController =
+      TextEditingController();
+  final TextEditingController _actualUltrafiltrationController =
+      TextEditingController();
   final TextEditingController _heparinRateController = TextEditingController();
   final TextEditingController _needleSizeController = TextEditingController();
   final TextEditingController _tmpController = TextEditingController();
 
   // Laboratory Values Controllers
   final TextEditingController _preBunController = TextEditingController();
-  final TextEditingController _preCreatinineController = TextEditingController();
+  final TextEditingController _preCreatinineController =
+      TextEditingController();
   final TextEditingController _prePotassiumController = TextEditingController();
   final TextEditingController _preSodiumController = TextEditingController();
+  final TextEditingController _preHaemoglobinController =
+      TextEditingController();
+  final TextEditingController _preSGOTController = TextEditingController();
+  final TextEditingController _preSGPTController = TextEditingController();
   final TextEditingController _postBunController = TextEditingController();
-  final TextEditingController _postCreatinineController = TextEditingController();
-  final TextEditingController _postPotassiumController = TextEditingController();
+  final TextEditingController _postCreatinineController =
+      TextEditingController();
+  final TextEditingController _postPotassiumController =
+      TextEditingController();
   final TextEditingController _postSodiumController = TextEditingController();
+  final TextEditingController _postHaemoglobinController =
+      TextEditingController();
+  final TextEditingController _postSGOTController = TextEditingController();
+  final TextEditingController _postSGPTController = TextEditingController();
 
   // Clinical Notes Controllers
-  final TextEditingController _machineAlarmsController = TextEditingController();
-  final TextEditingController _nursingInterventionsController = TextEditingController();
-  final TextEditingController _patientToleranceController = TextEditingController();
-  final TextEditingController _symptomsDuringTreatmentController = TextEditingController();
-  final TextEditingController _complicationsDetailsController = TextEditingController();
+  final TextEditingController _machineAlarmsController =
+      TextEditingController();
+  final TextEditingController _nursingInterventionsController =
+      TextEditingController();
+  final TextEditingController _patientToleranceController =
+      TextEditingController();
+  final TextEditingController _symptomsDuringTreatmentController =
+      TextEditingController();
+  final TextEditingController _actionController = TextEditingController();
+  final TextEditingController _complicationsDetailsController =
+      TextEditingController();
+  final TextEditingController _remarksController = TextEditingController();
+
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 4, vsync: this);
     _loadSessionData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
   Future<void> _loadSessionData() async {
-    final sessionData = await LocalStorageService.fetchSessionData(widget.patient.mrnNo, widget.scheduledDate);
+    final sessionData = await LocalStorageService.fetchSessionData(
+        widget.patient.mrnNo, widget.scheduledDate);
     if (sessionData != null) {
       // Vital Signs
       _preWeightController.text = sessionData.vitalSigns.bloodPressure;
@@ -90,8 +125,10 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
       // ... populate other vital signs
 
       // Treatment Parameters
-      _actualBloodFlowRateController.text = sessionData.treatmentParameters.dialysisDuration;
-      _totalBloodProcessedController.text = sessionData.treatmentParameters.dialyzerType;
+      _actualBloodFlowRateController.text =
+          sessionData.treatmentParameters.dialysisDuration;
+      _totalBloodProcessedController.text =
+          sessionData.treatmentParameters.dialyzerType;
       _dialyzerTypeController.text = sessionData.treatmentParameters.flowRate;
       // ... populate other treatment parameters
 
@@ -103,10 +140,14 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
 
       // Clinical Notes
       _machineAlarmsController.text = sessionData.clinicalNotes.notes;
-      _patientToleranceController.text = sessionData.clinicalNotes.patientTolerance;
-      _nursingInterventionsController.text = sessionData.clinicalNotes.nursingInterventions;
-      _symptomsDuringTreatmentController.text = sessionData.clinicalNotes.symptomsDuringTreatment;
-      _complicationsDetailsController.text = sessionData.clinicalNotes.complicationsDetails;
+      _patientToleranceController.text =
+          sessionData.clinicalNotes.patientTolerance;
+      _nursingInterventionsController.text =
+          sessionData.clinicalNotes.nursingInterventions;
+      _symptomsDuringTreatmentController.text =
+          sessionData.clinicalNotes.symptomsDuringTreatment;
+      _complicationsDetailsController.text =
+          sessionData.clinicalNotes.complicationsDetails;
     }
   }
 
@@ -157,6 +198,31 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
     super.dispose();
   }
 
+  Future<void> onSavePressed() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Save & Exit?"),
+        content:
+            const Text("Are you sure you want to save your progress and exit?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("No"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Yes, Save"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _saveSessionData();
+    }
+  }
+
   Future<void> _saveSessionData() async {
     final vitalSigns = VitalSigns(
       bloodPressure: _preWeightController.text,
@@ -196,7 +262,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
     await LocalStorageService.saveSessionData(sessionData);
 
     if (mounted) {
-      Navigator.pop(context, true); // Pop with a result to indicate data was saved
+      Navigator.pop(
+          context, true); // Pop with a result to indicate data was saved
     }
   }
 
@@ -206,134 +273,183 @@ class _SessionManagementScreenState extends State<SessionManagementScreen> {
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.white, // Dark Green
       ),
-      child: DefaultTabController(
-        length: 4,
-        child: Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.background,
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            elevation: 0,
-            toolbarHeight: 70,
-            automaticallyImplyLeading: true,
-            centerTitle: false,
-            iconTheme: const IconThemeData(color: Colors.white),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Session Management",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "${widget.patient.firstName} • MRN: ${widget.patient.mrnNo} • ${widget.treatmentType} • ${DateFormat('dd MMM yyyy').format(widget.scheduledDate)}",
-                  style: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onPrimary
-                        .withOpacity(0.7),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              // IconButton(
-              //   icon: const Icon(Icons.save, color: Colors.white),
-              //   onPressed: _saveSessionData,
-              // ),
-            ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(48),
-              child: Container(
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.only(left: 8, bottom: 6),
-                child: TabBar(
-                  isScrollable: true,
-                  labelColor: Theme.of(context).colorScheme.onPrimary,
-                  unselectedLabelColor:
-                      Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
-                  indicatorColor: Colors.white,
-                  indicatorWeight: 3,
-                  labelStyle: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  tabs: const [
-                    Tab(text: "Vital Signs"),
-                    Tab(text: "Treatment Parameters"),
-                    Tab(text: "Laboratory Values"),
-                    Tab(text: "Clinical Notes"),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          body: TabBarView(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          elevation: 0,
+          toolbarHeight: 70,
+          automaticallyImplyLeading: true,
+          centerTitle: false,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              VitalSignsPage(
-                preWeightController: _preWeightController,
-                postWeightController: _postWeightController,
-                prePulseController: _prePulseController,
-                midPulseController: _midPulseController,
-                postPulseController: _postPulseController,
-                preSystolicController: _preSystolicController,
-                midSystolicController: _midSystolicController,
-                postSystolicController: _postSystolicController,
-                preDiastolicController: _preDiastolicController,
-                midDiastolicController: _midDiastolicController,
-                postDiastolicController: _postDiastolicController,
-                preTempController: _preTempController,
-                postTempController: _postTempController,
-                preSpo2Controller: _preSpo2Controller,
-                postSpo2Controller: _postSpo2Controller,
-                onSave: _saveSessionData,
-                onComplete: _saveSessionData,
+              Text(
+                "Session Management",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              TreatmentParametersPage(
-                actualBloodFlowRateController: _actualBloodFlowRateController,
-                totalBloodProcessedController: _totalBloodProcessedController,
-                dialyzerTypeController: _dialyzerTypeController,
-                arterialPressureController: _arterialPressureController,
-                actualDialysateFlowRateController: _actualDialysateFlowRateController,
-                heparinBolusController: _heparinBolusController,
-                venousPressureController: _venousPressureController,
-                actualUltrafiltrationController: _actualUltrafiltrationController,
-                heparinRateController: _heparinRateController,
-                needleSizeController: _needleSizeController,
-                tmpController: _tmpController,
-                onSave: _saveSessionData,
-                onComplete: _saveSessionData,
-              ),
-              LaboratoryValuesPage(
-                preBunController: _preBunController,
-                preCreatinineController: _preCreatinineController,
-                prePotassiumController: _prePotassiumController,
-                preSodiumController: _preSodiumController,
-                postBunController: _postBunController,
-                postCreatinineController: _postCreatinineController,
-                postPotassiumController: _postPotassiumController,
-                postSodiumController: _postSodiumController,
-                onSave: _saveSessionData,
-                onComplete: _saveSessionData,
-              ),
-              ClinicalNotesPage(
-                machineAlarmsController: _machineAlarmsController,
-                nursingInterventionsController: _nursingInterventionsController,
-                patientToleranceController: _patientToleranceController,
-                symptomsDuringTreatmentController: _symptomsDuringTreatmentController,
-                complicationsDetailsController: _complicationsDetailsController,
-                onSave: _saveSessionData,
-                onComplete: _saveSessionData,
+              const SizedBox(height: 4),
+              Text(
+                "${widget.patient.firstName} • MRN: ${widget.patient.mrnNo} • ${widget.treatmentType} • ${DateFormat('dd MMM yyyy').format(widget.scheduledDate)}",
+                style: TextStyle(
+                  color:
+                      Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
+          actions: const [
+            // IconButton(
+            //   icon: const Icon(Icons.save, color: Colors.white),
+            //   onPressed: _saveSessionData,
+            // ),
+          ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 8, bottom: 6),
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                labelColor: Theme.of(context).colorScheme.onPrimary,
+                unselectedLabelColor:
+                    Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
+                indicatorColor: Colors.white,
+                indicatorWeight: 3,
+                labelStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+                tabs: const [
+                  Tab(text: "Vital Signs"),
+                  Tab(text: "Treatment Parameters"),
+                  Tab(text: "Laboratory Values"),
+                  Tab(text: "Clinical Notes"),
+                ],
+              ),
+            ),
+          ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            VitalSignsPage(
+              preWeightController: _preWeightController,
+              postWeightController: _postWeightController,
+              prePulseController: _prePulseController,
+              midPulseController: _midPulseController,
+              postPulseController: _postPulseController,
+              preSystolicController: _preSystolicController,
+              midSystolicController: _midSystolicController,
+              postSystolicController: _postSystolicController,
+              preDiastolicController: _preDiastolicController,
+              midDiastolicController: _midDiastolicController,
+              postDiastolicController: _postDiastolicController,
+              preTempController: _preTempController,
+              postTempController: _postTempController,
+              preSpo2Controller: _preSpo2Controller,
+              postSpo2Controller: _postSpo2Controller,
+              onSave: onSavePressed,
+              onComplete: onSavePressed,
+              onNext: _goToNextTab,
+              onCancel: _onCancelPressed,
+            ),
+            TreatmentParametersPage(
+              actualBloodFlowRateController: _actualBloodFlowRateController,
+              totalBloodProcessedController: _totalBloodProcessedController,
+              dialyzerTypeController: _dialyzerTypeController,
+              arterialPressureController: _arterialPressureController,
+              actualDialysateFlowRateController:
+                  _actualDialysateFlowRateController,
+              heparinBolusController: _heparinBolusController,
+              venousPressureController: _venousPressureController,
+              actualUltrafiltrationController: _actualUltrafiltrationController,
+              heparinRateController: _heparinRateController,
+              needleSizeController: _needleSizeController,
+              tmpController: _tmpController,
+              onSave: onSavePressed,
+              onComplete: onSavePressed,
+              onNext: _goToNextTab,
+              onCancel: _onCancelPressed,
+            ),
+            LaboratoryValuesPage(
+              preBunController: _preBunController,
+              preCreatinineController: _preCreatinineController,
+              prePotassiumController: _prePotassiumController,
+              preSodiumController: _preSodiumController,
+              preHaemoglobinController: _preHaemoglobinController,
+              preSGOTController: _preSGOTController,
+              preSGPTController: _preSGPTController,
+              postBunController: _postBunController,
+              postCreatinineController: _postCreatinineController,
+              postPotassiumController: _postPotassiumController,
+              postSodiumController: _postSodiumController,
+              postHaemoglobinController: _postHaemoglobinController,
+              postSGOTController: _postSGOTController,
+              postSGPTController: _postSGPTController,
+              onSave: onSavePressed,
+              onComplete: onSavePressed,
+              onNext: _goToNextTab,
+              onCancel: _onCancelPressed,
+            ),
+            ClinicalNotesPage(
+              machineAlarmsController: _machineAlarmsController,
+              nursingInterventionsController: _nursingInterventionsController,
+              patientToleranceController: _patientToleranceController,
+              symptomsDuringTreatmentController:
+                  _symptomsDuringTreatmentController,
+              actionTakenController: _actionController,
+              complicationsDetailsController: _complicationsDetailsController,
+              remarksController: _remarksController,
+              onSave: onSavePressed,
+              onComplete: onSavePressed,
+              onCancel: _onCancelPressed,
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _goToNextTab() {
+    if (_tabController.index < _tabController.length - 1) {
+      _tabController.animateTo(_tabController.index + 1);
+    }
+  }
+
+  Future<void> _onCancelPressed() async {
+    final confirm = await _showConfirmDialog(
+      "Cancel?",
+      "Are you sure you want to cancel?",
+    );
+    if (confirm) Navigator.pop(context);
+  }
+
+  Future<bool> _showConfirmDialog(String title, String message) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("No"),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text("Yes"),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 }

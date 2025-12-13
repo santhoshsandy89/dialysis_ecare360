@@ -6,26 +6,41 @@ class LaboratoryValuesPage extends StatelessWidget {
   final TextEditingController preCreatinineController;
   final TextEditingController prePotassiumController;
   final TextEditingController preSodiumController;
+  final TextEditingController preHaemoglobinController;
+  final TextEditingController preSGOTController;
+  final TextEditingController preSGPTController;
   final TextEditingController postBunController;
   final TextEditingController postCreatinineController;
   final TextEditingController postPotassiumController;
   final TextEditingController postSodiumController;
+  final TextEditingController postHaemoglobinController;
+  final TextEditingController postSGOTController;
+  final TextEditingController postSGPTController;
   final VoidCallback? onSave;
   final VoidCallback? onComplete;
+  final VoidCallback? onNext;
+  final VoidCallback? onCancel;
 
-  const LaboratoryValuesPage({
-    super.key,
-    required this.preBunController,
-    required this.preCreatinineController,
-    required this.prePotassiumController,
-    required this.preSodiumController,
-    required this.postBunController,
-    required this.postCreatinineController,
-    required this.postPotassiumController,
-    required this.postSodiumController,
-    this.onSave,
-    this.onComplete,
-  });
+  const LaboratoryValuesPage(
+      {super.key,
+      required this.preBunController,
+      required this.preCreatinineController,
+      required this.prePotassiumController,
+      required this.preSodiumController,
+      required this.preHaemoglobinController,
+      required this.preSGOTController,
+      required this.preSGPTController,
+      required this.postBunController,
+      required this.postCreatinineController,
+      required this.postPotassiumController,
+      required this.postSodiumController,
+      required this.postHaemoglobinController,
+      required this.postSGOTController,
+      required this.postSGPTController,
+      this.onSave,
+      this.onComplete,
+      this.onNext,
+      this.onCancel});
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +55,14 @@ class LaboratoryValuesPage extends StatelessWidget {
             icon: Icons.preview_outlined,
             children: [
               rowInput("BUN (mg/dL)", controller: preBunController),
-              rowInput("Creatinine (mg/dL)", controller: preCreatinineController),
+              rowInput("Creatinine (mg/dL)",
+                  controller: preCreatinineController),
               rowInput("Potassium (mEq/L)", controller: prePotassiumController),
               rowInput("Sodium (mEq/L)", controller: preSodiumController),
+              rowInput("Haemoglobin (HB)",
+                  controller: preHaemoglobinController),
+              rowInput("SGOT", controller: preSGOTController),
+              rowInput("SGPT", controller: preSGPTController),
             ],
           ),
           sectionCard(
@@ -51,13 +71,25 @@ class LaboratoryValuesPage extends StatelessWidget {
             icon: Icons.post_add_outlined,
             children: [
               rowInput("BUN (mg/dL)", controller: postBunController),
-              rowInput("Creatinine (mg/dL)", controller: postCreatinineController),
-              rowInput("Potassium (mEq/L)", controller: postPotassiumController),
+              rowInput("Creatinine (mg/dL)",
+                  controller: postCreatinineController),
+              rowInput("Potassium (mEq/L)",
+                  controller: postPotassiumController),
               rowInput("Sodium (mEq/L)", controller: postSodiumController),
+              rowInput("Haemoglobin (HB)",
+                  controller: postHaemoglobinController),
+              rowInput("SGOT", controller: postSGOTController),
+              rowInput("SGPT", controller: postSGPTController),
             ],
           ),
           const SizedBox(height: 20),
-          actionButtons(context, onSave: onSave, onComplete: onComplete),
+          actionButtons(
+            context,
+            onCancel: onCancel,
+            onSave: onSave,
+            onComplete: onComplete,
+            onNext: onNext,
+          )
         ],
       ),
     );
