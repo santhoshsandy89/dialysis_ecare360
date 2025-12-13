@@ -64,29 +64,77 @@ class SessionData {
 }
 
 class VitalSigns {
-  final String bloodPressure;
-  final String heartRate;
-  final String temperature;
+  final String preWeight;
+  final String postWeight;
+  final String prePulse;
+  final String midPulse;
+  final String postPulse;
+  final String preSystolic;
+  final String midSystolic;
+  final String postSystolic;
+  final String preDiastolic;
+  final String midDiastolic;
+  final String postDiastolic;
+  final String preTemp;
+  final String postTemp;
+  final String preSpo2;
+  final String postSpo2;
 
   VitalSigns({
-    required this.bloodPressure,
-    required this.heartRate,
-    required this.temperature,
+    required this.preWeight,
+    required this.postWeight,
+    required this.prePulse,
+    required this.midPulse,
+    required this.postPulse,
+    required this.preSystolic,
+    required this.midSystolic,
+    required this.postSystolic,
+    required this.preDiastolic,
+    required this.midDiastolic,
+    required this.postDiastolic,
+    required this.preTemp,
+    required this.postTemp,
+    required this.preSpo2,
+    required this.postSpo2,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'bloodPressure': bloodPressure,
-      'heartRate': heartRate,
-      'temperature': temperature,
+      'preWeight': preWeight,
+      'postWeight': postWeight,
+      'prePulse': prePulse,
+      'midPulse': midPulse,
+      'postPulse': postPulse,
+      'preSystolic': preSystolic,
+      'midSystolic': midSystolic,
+      'postSystolic': postSystolic,
+      'preDiastolic': preDiastolic,
+      'midDiastolic': midDiastolic,
+      'postDiastolic': postDiastolic,
+      'preTemp': preTemp,
+      'postTemp': postTemp,
+      'preSpo2': preSpo2,
+      'postSpo2': postSpo2,
     };
   }
 
   factory VitalSigns.fromMap(Map<String, dynamic> map) {
     return VitalSigns(
-      bloodPressure: map['bloodPressure'] ?? '',
-      heartRate: map['heartRate'] ?? '',
-      temperature: map['temperature'] ?? '',
+      preWeight: map['preWeight'] ?? '',
+      postWeight: map['postWeight'] ?? '',
+      prePulse: map['prePulse'] ?? '',
+      midPulse: map['midPulse'] ?? '',
+      postPulse: map['postPulse'] ?? '',
+      preSystolic: map['preSystolic'] ?? '',
+      midSystolic: map['midSystolic'] ?? '',
+      postSystolic: map['postSystolic'] ?? '',
+      preDiastolic: map['preDiastolic'] ?? '',
+      midDiastolic: map['midDiastolic'] ?? '',
+      postDiastolic: map['postDiastolic'] ?? '',
+      preTemp: map['preTemp'] ?? '',
+      postTemp: map['postTemp'] ?? '',
+      preSpo2: map['preSpo2'] ?? '',
+      postSpo2: map['postSpo2'] ?? '',
     );
   }
 
@@ -97,29 +145,65 @@ class VitalSigns {
 }
 
 class TreatmentParameters {
-  final String dialysisDuration;
+  final String actualBloodFlowRate;
+  final String totalBloodProcessed;
   final String dialyzerType;
-  final String flowRate;
+  final String arterialPressure;
+  final String actualDialysisFlowRate;
+  final String heparinBolus;
+  final String accessCondition;
+  final String venousPressure;
+  final String actualUltrafiltration;
+  final String heparinRate;
+  final String needleSize;
+  final String tmp;
 
   TreatmentParameters({
-    required this.dialysisDuration,
+    required this.actualBloodFlowRate,
+    required this.totalBloodProcessed,
     required this.dialyzerType,
-    required this.flowRate,
+    required this.arterialPressure,
+    required this.actualDialysisFlowRate,
+    required this.heparinBolus,
+    required this.accessCondition,
+    required this.venousPressure,
+    required this.actualUltrafiltration,
+    required this.heparinRate,
+    required this.needleSize,
+    required this.tmp,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'dialysisDuration': dialysisDuration,
+      'actualBloodFlowRate': actualBloodFlowRate,
+      'totalBloodProcessed': totalBloodProcessed,
       'dialyzerType': dialyzerType,
-      'flowRate': flowRate,
+      'arterialPressure': arterialPressure,
+      'actualDialysisFlowRate': actualDialysisFlowRate,
+      'heparinBolus': heparinBolus,
+      'accessCondition': accessCondition,
+      'venousPressure': venousPressure,
+      'actualUltrafiltration': actualUltrafiltration,
+      'heparinRate': heparinRate,
+      'needleSize': needleSize,
+      'tmp': tmp,
     };
   }
 
   factory TreatmentParameters.fromMap(Map<String, dynamic> map) {
     return TreatmentParameters(
-      dialysisDuration: map['dialysisDuration'] ?? '',
+      actualBloodFlowRate: map['actualBloodFlowRate'] ?? '',
+      totalBloodProcessed: map['totalBloodProcessed'] ?? '',
       dialyzerType: map['dialyzerType'] ?? '',
-      flowRate: map['flowRate'] ?? '',
+      arterialPressure: map['arterialPressure'] ?? '',
+      actualDialysisFlowRate: map['actualDialysisFlowRate'] ?? '',
+      heparinBolus: map['heparinBolus'] ?? '',
+      accessCondition: map['accessCondition'] ?? '',
+      venousPressure: map['venousPressure'] ?? '',
+      actualUltrafiltration: map['actualUltrafiltration'] ?? '',
+      heparinRate: map['heparinRate'] ?? '',
+      needleSize: map['needleSize'] ?? '',
+      tmp: map['tmp'] ?? '',
     );
   }
 
@@ -130,25 +214,33 @@ class TreatmentParameters {
 }
 
 class LaboratoryValues {
-  final String hemoglobin;
-  final String creatinine;
-  final String potassium;
-  final String sodium;
+  final String preBun;
+  final String preCreatinine;
+  final String prePotassium;
+  final String preSodium;
   final String preHaemoglobin;
   final String preSGOT;
   final String preSGPT;
+  final String postBun;
+  final String postCreatinine;
+  final String postPotassium;
+  final String postSodium;
   final String postHaemoglobin;
   final String postSGOT;
   final String postSGPT;
 
   LaboratoryValues({
-    required this.hemoglobin,
-    required this.creatinine,
-    required this.potassium,
-    required this.sodium,
+    required this.preBun,
+    required this.preCreatinine,
+    required this.prePotassium,
+    required this.preSodium,
     required this.preHaemoglobin,
     required this.preSGOT,
     required this.preSGPT,
+    required this.postBun,
+    required this.postCreatinine,
+    required this.postPotassium,
+    required this.postSodium,
     required this.postHaemoglobin,
     required this.postSGOT,
     required this.postSGPT,
@@ -156,13 +248,17 @@ class LaboratoryValues {
 
   Map<String, dynamic> toMap() {
     return {
-      'hemoglobin': hemoglobin,
-      'creatinine': creatinine,
-      'potassium': potassium,
-      'sodium': sodium,
+      'preBun': preBun,
+      'preCreatinine': preCreatinine,
+      'prePotassium': prePotassium,
+      'preSodium': preSodium,
       'preHaemoglobin': preHaemoglobin,
       'preSGOT': preSGOT,
       'preSGPT': preSGPT,
+      'postBun': postBun,
+      'postCreatinine': postCreatinine,
+      'postPotassium': postPotassium,
+      'postSodium': postSodium,
       'postHaemoglobin': postHaemoglobin,
       'postSGOT': postSGOT,
       'postSGPT': postSGPT,
@@ -171,13 +267,17 @@ class LaboratoryValues {
 
   factory LaboratoryValues.fromMap(Map<String, dynamic> map) {
     return LaboratoryValues(
-      hemoglobin: map['hemoglobin'] ?? '',
-      creatinine: map['creatinine'] ?? '',
-      potassium: map['potassium'] ?? '',
-      sodium: map['sodium'] ?? '',
+      preBun: map['preBun'] ?? '',
+      preCreatinine: map['preCreatinine'] ?? '',
+      prePotassium: map['prePotassium'] ?? '',
+      preSodium: map['preSodium'] ?? '',
       preHaemoglobin: map['preHaemoglobin'] ?? '',
       preSGOT: map['preSGOT'] ?? '',
       preSGPT: map['preSGPT'] ?? '',
+      postBun: map['postBun'] ?? '',
+      postCreatinine: map['postCreatinine'] ?? '',
+      postPotassium: map['postPotassium'] ?? '',
+      postSodium: map['postSodium'] ?? '',
       postHaemoglobin: map['postHaemoglobin'] ?? '',
       postSGOT: map['postSGOT'] ?? '',
       postSGPT: map['postSGPT'] ?? '',
@@ -191,18 +291,18 @@ class LaboratoryValues {
 }
 
 class ClinicalNotes {
-  final String notes;
-  final String patientTolerance;
+  final String machineAlarm;
   final String nursingInterventions;
+  final String patientTolerance;
   final String symptomsDuringTreatment;
   final String complicationsDetails;
   final String actionTaken;
   final String remarks;
 
   ClinicalNotes({
-    required this.notes,
-    required this.patientTolerance,
+    required this.machineAlarm,
     required this.nursingInterventions,
+    required this.patientTolerance,
     required this.symptomsDuringTreatment,
     required this.complicationsDetails,
     required this.actionTaken,
@@ -211,9 +311,9 @@ class ClinicalNotes {
 
   Map<String, dynamic> toMap() {
     return {
-      'notes': notes,
-      'patientTolerance': patientTolerance,
+      'machineAlarm': machineAlarm,
       'nursingInterventions': nursingInterventions,
+      'patientTolerance': patientTolerance,
       'symptomsDuringTreatment': symptomsDuringTreatment,
       'complicationsDetails': complicationsDetails,
       'actionTaken': actionTaken,
@@ -223,9 +323,9 @@ class ClinicalNotes {
 
   factory ClinicalNotes.fromMap(Map<String, dynamic> map) {
     return ClinicalNotes(
-      notes: map['notes'] ?? '',
-      patientTolerance: map['patientTolerance'] ?? '',
+      machineAlarm: map['machineAlarm'] ?? '',
       nursingInterventions: map['nursingInterventions'] ?? '',
+      patientTolerance: map['patientTolerance'] ?? '',
       symptomsDuringTreatment: map['symptomsDuringTreatment'] ?? '',
       complicationsDetails: map['complicationsDetails'] ?? '',
       actionTaken: map['actionTaken'] ?? '',

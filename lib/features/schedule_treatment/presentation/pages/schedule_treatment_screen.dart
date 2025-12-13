@@ -215,8 +215,7 @@ class _ScheduleTreatmentSectionState
                               items: BloodType.values
                                   .map((e) => DropdownMenuItem(
                                         value: e,
-                                        child:
-                                            Text(e.toString().split('.').last),
+                                        child: Text(e.displayName),
                                       ))
                                   .toList(),
                               validator: (v) =>

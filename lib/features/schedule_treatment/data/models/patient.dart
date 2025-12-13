@@ -9,6 +9,29 @@ enum BloodType {
   ONegative
 }
 
+extension BloodTypeExtension on BloodType {
+  String get displayName {
+    switch (this) {
+      case BloodType.APositive:
+        return 'A+';
+      case BloodType.ANegative:
+        return 'A-';
+      case BloodType.BPositive:
+        return 'B+';
+      case BloodType.BNegative:
+        return 'B-';
+      case BloodType.ABPositive:
+        return 'AB+';
+      case BloodType.ABNegative:
+        return 'AB-';
+      case BloodType.OPositive:
+        return 'O+';
+      case BloodType.ONegative:
+        return 'O-';
+    }
+  }
+}
+
 class Patient {
   final String mrnNo;
   final String firstName;

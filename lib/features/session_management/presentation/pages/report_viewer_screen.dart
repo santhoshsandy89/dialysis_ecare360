@@ -1,16 +1,18 @@
 import 'dart:typed_data';
+
+import 'package:ecare360/data/models/session_data_model.dart';
+import 'package:ecare360/data/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:ecare360/data/models/session_data_model.dart';
-import 'package:ecare360/data/services/local_storage_service.dart';
 
 class ReportViewerScreen extends StatelessWidget {
   final String patientId;
   final DateTime sessionDate;
 
-  const ReportViewerScreen({super.key, required this.patientId, required this.sessionDate});
+  const ReportViewerScreen(
+      {super.key, required this.patientId, required this.sessionDate});
 
   Future<SessionData?> _fetchSessionData() async {
     return await LocalStorageService.fetchSessionData(patientId, sessionDate);
@@ -33,37 +35,82 @@ class ReportViewerScreen extends StatelessWidget {
           pw.SizedBox(height: 20),
           _buildSection(context, 'Vital Signs', [
             _buildDetailRow(
-                'Blood Pressure', sessionData.vitalSigns.bloodPressure),
-            _buildDetailRow('Heart Rate', sessionData.vitalSigns.heartRate),
-            _buildDetailRow('Temperature', sessionData.vitalSigns.temperature),
+                'Pre Weight (KG)', sessionData.vitalSigns.preWeight),
+            _buildDetailRow(
+                'Post Weight (KG)', sessionData.vitalSigns.postWeight),
+            _buildDetailRow('Pre Pulse', sessionData.vitalSigns.prePulse),
+            _buildDetailRow('Mid Pulse', sessionData.vitalSigns.midPulse),
+            _buildDetailRow('Post Pulse', sessionData.vitalSigns.postPulse),
+            _buildDetailRow('Pre-Systolic', sessionData.vitalSigns.preSystolic),
+            _buildDetailRow('Mid-Systolic', sessionData.vitalSigns.midSystolic),
+            _buildDetailRow(
+                'Post-Systolic', sessionData.vitalSigns.postSystolic),
+            _buildDetailRow(
+                'Pre-Diastolic', sessionData.vitalSigns.preDiastolic),
+            _buildDetailRow(
+                'Mid-Diastolic', sessionData.vitalSigns.midDiastolic),
+            _buildDetailRow(
+                'Post-Diastolic', sessionData.vitalSigns.postDiastolic),
+            _buildDetailRow('Pre-Temperature', sessionData.vitalSigns.preTemp),
+            _buildDetailRow(
+                'Post-Temperature', sessionData.vitalSigns.postTemp),
+            _buildDetailRow('Pre-Spo2', sessionData.vitalSigns.preSpo2),
+            _buildDetailRow('Post-Spo2', sessionData.vitalSigns.postSpo2),
           ]),
           _buildSection(context, 'Treatment Parameters', [
-            _buildDetailRow('Dialysis Duration',
-                sessionData.treatmentParameters.dialysisDuration),
+            _buildDetailRow('Actual Blood Flow Rate',
+                sessionData.treatmentParameters.actualBloodFlowRate),
+            _buildDetailRow('Total Blood Processed',
+                sessionData.treatmentParameters.totalBloodProcessed),
             _buildDetailRow(
                 'Dialyzer Type', sessionData.treatmentParameters.dialyzerType),
+            _buildDetailRow('Arterial Pressure',
+                sessionData.treatmentParameters.arterialPressure),
+            _buildDetailRow('Actual Dialysis Flow Rate',
+                sessionData.treatmentParameters.actualDialysisFlowRate),
             _buildDetailRow(
-                'Flow Rate', sessionData.treatmentParameters.flowRate),
+                'Heparin Bolus', sessionData.treatmentParameters.heparinBolus),
+            _buildDetailRow('Access Condition',
+                sessionData.treatmentParameters.accessCondition),
+            _buildDetailRow('Venous Pressure',
+                sessionData.treatmentParameters.venousPressure),
+            _buildDetailRow('Actual Ultrafiltration',
+                sessionData.treatmentParameters.actualUltrafiltration),
+            _buildDetailRow(
+                'Heparin Rate', sessionData.treatmentParameters.heparinRate),
+            _buildDetailRow(
+                'Needle Size', sessionData.treatmentParameters.needleSize),
+            _buildDetailRow('TMP', sessionData.treatmentParameters.tmp),
           ]),
           _buildSection(context, 'Laboratory Values', [
-            _buildDetailRow('Hemoglobin', sessionData.laboratoryValues.hemoglobin),
-            _buildDetailRow('Creatinine', sessionData.laboratoryValues.creatinine),
-            _buildDetailRow('Potassium', sessionData.laboratoryValues.potassium),
-            _buildDetailRow('Sodium', sessionData.laboratoryValues.sodium),
-            _buildDetailRow('Pre-Haemoglobin', sessionData.laboratoryValues.preHaemoglobin),
+            _buildDetailRow('Hemoglobin', sessionData.laboratoryValues.preBun),
+            _buildDetailRow(
+                'Creatinine', sessionData.laboratoryValues.preCreatinine),
+            _buildDetailRow(
+                'Potassium', sessionData.laboratoryValues.prePotassium),
+            _buildDetailRow('Sodium', sessionData.laboratoryValues.preSodium),
+            _buildDetailRow(
+                'Pre-Haemoglobin', sessionData.laboratoryValues.preHaemoglobin),
             _buildDetailRow('Pre-SGOT', sessionData.laboratoryValues.preSGOT),
             _buildDetailRow('Pre-SGPT', sessionData.laboratoryValues.preSGPT),
-            _buildDetailRow('Post-Haemoglobin', sessionData.laboratoryValues.postHaemoglobin),
+            _buildDetailRow('Post-Haemoglobin',
+                sessionData.laboratoryValues.postHaemoglobin),
             _buildDetailRow('Post-SGOT', sessionData.laboratoryValues.postSGOT),
             _buildDetailRow('Post-SGPT', sessionData.laboratoryValues.postSGPT),
           ]),
           _buildSection(context, 'Clinical Notes', [
-            _buildDetailRow('Notes', sessionData.clinicalNotes.notes),
-            _buildDetailRow('Patient Tolerance', sessionData.clinicalNotes.patientTolerance),
-            _buildDetailRow('Nursing Interventions', sessionData.clinicalNotes.nursingInterventions),
-            _buildDetailRow('Symptoms During Treatment', sessionData.clinicalNotes.symptomsDuringTreatment),
-            _buildDetailRow('Complications Details', sessionData.clinicalNotes.complicationsDetails),
-            _buildDetailRow('Action Taken', sessionData.clinicalNotes.actionTaken),
+            _buildDetailRow(
+                'Machine Alarm', sessionData.clinicalNotes.machineAlarm),
+            _buildDetailRow('Patient Tolerance',
+                sessionData.clinicalNotes.patientTolerance),
+            _buildDetailRow('Nursing Interventions',
+                sessionData.clinicalNotes.nursingInterventions),
+            _buildDetailRow('Symptoms During Treatment',
+                sessionData.clinicalNotes.symptomsDuringTreatment),
+            _buildDetailRow('Complications Details',
+                sessionData.clinicalNotes.complicationsDetails),
+            _buildDetailRow(
+                'Action Taken', sessionData.clinicalNotes.actionTaken),
             _buildDetailRow('Remarks', sessionData.clinicalNotes.remarks),
           ]),
         ],

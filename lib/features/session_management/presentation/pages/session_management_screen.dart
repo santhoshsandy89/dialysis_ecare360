@@ -61,6 +61,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
   final TextEditingController _actualDialysateFlowRateController =
       TextEditingController();
   final TextEditingController _heparinBolusController = TextEditingController();
+  final TextEditingController _accessConditionController =
+      TextEditingController();
   final TextEditingController _venousPressureController =
       TextEditingController();
   final TextEditingController _actualUltrafiltrationController =
@@ -99,9 +101,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       TextEditingController();
   final TextEditingController _symptomsDuringTreatmentController =
       TextEditingController();
-  final TextEditingController _actionController = TextEditingController();
   final TextEditingController _complicationsDetailsController =
       TextEditingController();
+  final TextEditingController _actionController = TextEditingController();
   final TextEditingController _remarksController = TextEditingController();
 
   late TabController _tabController;
@@ -132,27 +134,72 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       });
 
       // Vital Signs
-      _preWeightController.text = sessionData.vitalSigns.bloodPressure;
-      _postWeightController.text = sessionData.vitalSigns.heartRate;
-      _prePulseController.text = sessionData.vitalSigns.temperature;
+      _preWeightController.text = sessionData.vitalSigns.preWeight;
+      _postWeightController.text = sessionData.vitalSigns.postWeight;
+      _prePulseController.text = sessionData.vitalSigns.prePulse;
+      _midPulseController.text = sessionData.vitalSigns.midPulse;
+      _postPulseController.text = sessionData.vitalSigns.postPulse;
+      _preSystolicController.text = sessionData.vitalSigns.preSystolic;
+      _midSystolicController.text = sessionData.vitalSigns.midSystolic;
+      _postSystolicController.text = sessionData.vitalSigns.postSystolic;
+      _preDiastolicController.text = sessionData.vitalSigns.preDiastolic;
+      _midDiastolicController.text = sessionData.vitalSigns.midDiastolic;
+      _postDiastolicController.text = sessionData.vitalSigns.postDiastolic;
+      _preTempController.text = sessionData.vitalSigns.preTemp;
+      _postTempController.text = sessionData.vitalSigns.postTemp;
+      _preSpo2Controller.text = sessionData.vitalSigns.preSpo2;
+      _postSpo2Controller.text = sessionData.vitalSigns.postSpo2;
       // ... populate other vital signs
 
       // Treatment Parameters
       _actualBloodFlowRateController.text =
-          sessionData.treatmentParameters.dialysisDuration;
+          sessionData.treatmentParameters.actualBloodFlowRate;
       _totalBloodProcessedController.text =
+          sessionData.treatmentParameters.totalBloodProcessed;
+      _dialyzerTypeController.text =
           sessionData.treatmentParameters.dialyzerType;
-      _dialyzerTypeController.text = sessionData.treatmentParameters.flowRate;
+      _arterialPressureController.text =
+          sessionData.treatmentParameters.arterialPressure;
+      _actualDialysateFlowRateController.text =
+          sessionData.treatmentParameters.actualDialysisFlowRate;
+      _heparinBolusController.text =
+          sessionData.treatmentParameters.heparinBolus;
+      _accessConditionController.text =
+          sessionData.treatmentParameters.accessCondition;
+      _venousPressureController.text =
+          sessionData.treatmentParameters.venousPressure;
+      _actualUltrafiltrationController.text =
+          sessionData.treatmentParameters.actualUltrafiltration;
+      _heparinRateController.text = sessionData.treatmentParameters.heparinRate;
+      _needleSizeController.text = sessionData.treatmentParameters.needleSize;
+      _tmpController.text = sessionData.treatmentParameters.tmp;
       // ... populate other treatment parameters
 
       // Laboratory Values
-      _preBunController.text = sessionData.laboratoryValues.hemoglobin;
-      _preCreatinineController.text = sessionData.laboratoryValues.creatinine;
-      _prePotassiumController.text = sessionData.laboratoryValues.potassium;
+      _preBunController.text = sessionData.laboratoryValues.preBun;
+      _preCreatinineController.text =
+          sessionData.laboratoryValues.preCreatinine;
+      _prePotassiumController.text = sessionData.laboratoryValues.prePotassium;
+      _preSodiumController.text = sessionData.laboratoryValues.preSodium;
+      _preHaemoglobinController.text =
+          sessionData.laboratoryValues.preHaemoglobin;
+      _preSGOTController.text = sessionData.laboratoryValues.preSGOT;
+      _preSGPTController.text = sessionData.laboratoryValues.preSGPT;
+      _postBunController.text = sessionData.laboratoryValues.postBun;
+      _postCreatinineController.text =
+          sessionData.laboratoryValues.postCreatinine;
+      _postPotassiumController.text =
+          sessionData.laboratoryValues.postPotassium;
+      _postSodiumController.text = sessionData.laboratoryValues.postSodium;
+      _postHaemoglobinController.text =
+          sessionData.laboratoryValues.postHaemoglobin;
+      _postSGOTController.text = sessionData.laboratoryValues.postSGOT;
+      _postSGPTController.text = sessionData.laboratoryValues.postSGPT;
+
       // ... populate other laboratory values
 
       // Clinical Notes
-      _machineAlarmsController.text = sessionData.clinicalNotes.notes;
+      _machineAlarmsController.text = sessionData.clinicalNotes.machineAlarm;
       _patientToleranceController.text =
           sessionData.clinicalNotes.patientTolerance;
       _nursingInterventionsController.text =
@@ -161,6 +208,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
           sessionData.clinicalNotes.symptomsDuringTreatment;
       _complicationsDetailsController.text =
           sessionData.clinicalNotes.complicationsDetails;
+      _actionController.text = sessionData.clinicalNotes.actionTaken;
+      _remarksController.text = sessionData.clinicalNotes.remarks;
     }
   }
 
@@ -216,38 +265,62 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
 
   Future<void> _saveSessionData(SessionStatus statusToSave) async {
     final vitalSigns = VitalSigns(
-      bloodPressure: _preWeightController.text,
-      heartRate: _postWeightController.text,
-      temperature: _prePulseController.text,
+      preWeight: _preWeightController.text,
+      postWeight: _postWeightController.text,
+      prePulse: _prePulseController.text,
+      midPulse: _midPulseController.text,
+      postPulse: _postPulseController.text,
+      preSystolic: _preSystolicController.text,
+      midSystolic: _midSystolicController.text,
+      postSystolic: _postSystolicController.text,
+      preDiastolic: _preDiastolicController.text,
+      midDiastolic: _midDiastolicController.text,
+      postDiastolic: _postDiastolicController.text,
+      preTemp: _preTempController.text,
+      postTemp: _postTempController.text,
+      preSpo2: _preSpo2Controller.text,
+      postSpo2: _postSpo2Controller.text,
     );
-
     final treatmentParameters = TreatmentParameters(
-      dialysisDuration: _actualBloodFlowRateController.text,
-      dialyzerType: _totalBloodProcessedController.text,
-      flowRate: _dialyzerTypeController.text,
+      actualBloodFlowRate: _actualBloodFlowRateController.text,
+      totalBloodProcessed: _totalBloodProcessedController.text,
+      dialyzerType: _dialyzerTypeController.text,
+      arterialPressure: _arterialPressureController.text,
+      actualDialysisFlowRate: _actualDialysateFlowRateController.text,
+      heparinBolus: _heparinBolusController.text,
+      accessCondition: _accessConditionController.text,
+      venousPressure: _venousPressureController.text,
+      actualUltrafiltration: _actualUltrafiltrationController.text,
+      heparinRate: _heparinRateController.text,
+      needleSize: _needleSizeController.text,
+      tmp: _tmpController.text,
     );
 
     final laboratoryValues = LaboratoryValues(
-      hemoglobin: _preBunController.text,
-      creatinine: _preCreatinineController.text,
-      potassium: _prePotassiumController.text,
-      sodium: _preSodiumController.text,
+      preBun: _preBunController.text,
+      preCreatinine: _preCreatinineController.text,
+      prePotassium: _prePotassiumController.text,
+      preSodium: _preSodiumController.text,
       preHaemoglobin: _preHaemoglobinController.text,
       preSGOT: _preSGOTController.text,
       preSGPT: _preSGPTController.text,
+      postBun: _postBunController.text,
+      postCreatinine: _postCreatinineController.text,
+      postPotassium: _postPotassiumController.text,
+      postSodium: _postSodiumController.text,
       postHaemoglobin: _postHaemoglobinController.text,
       postSGOT: _postSGOTController.text,
       postSGPT: _postSGPTController.text,
     );
 
     final clinicalNotes = ClinicalNotes(
-      notes: _machineAlarmsController.text,
+      machineAlarm: _machineAlarmsController.text,
       patientTolerance: _patientToleranceController.text,
       nursingInterventions: _nursingInterventionsController.text,
       symptomsDuringTreatment: _symptomsDuringTreatmentController.text,
       complicationsDetails: _complicationsDetailsController.text,
-      actionTaken: '',
-      remarks: '',
+      actionTaken: _actionController.text,
+      remarks: _remarksController.text,
     );
 
     final sessionData = SessionData(
