@@ -70,6 +70,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
   final TextEditingController _heparinRateController = TextEditingController();
   final TextEditingController _needleSizeController = TextEditingController();
   final TextEditingController _tmpController = TextEditingController();
+  List<BloodPressureEntry> _bloodPressureEntries = [];
 
   // Laboratory Values Controllers
   final TextEditingController _preBunController = TextEditingController();
@@ -173,6 +174,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       _heparinRateController.text = sessionData.treatmentParameters.heparinRate;
       _needleSizeController.text = sessionData.treatmentParameters.needleSize;
       _tmpController.text = sessionData.treatmentParameters.tmp;
+      _bloodPressureEntries = sessionData.treatmentParameters.bloodPressureEntries;
       // ... populate other treatment parameters
 
       // Laboratory Values
@@ -242,6 +244,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
     _heparinRateController.dispose();
     _needleSizeController.dispose();
     _tmpController.dispose();
+    _bloodPressureEntries.clear();
 
     _preBunController.dispose();
     _preCreatinineController.dispose();
@@ -294,6 +297,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       heparinRate: _heparinRateController.text,
       needleSize: _needleSizeController.text,
       tmp: _tmpController.text,
+      bloodPressureEntries: _bloodPressureEntries,
     );
 
     final laboratoryValues = LaboratoryValues(
@@ -505,6 +509,12 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               heparinRateController: _heparinRateController,
               needleSizeController: _needleSizeController,
               tmpController: _tmpController,
+              initialBpEntries: _bloodPressureEntries,
+              onBpEntriesChanged: (newEntries) {
+                setState(() {
+                  _bloodPressureEntries = newEntries;
+                });
+              },
               onSave: _onSaveProgressPressed,
               onComplete: _onCompleteSessionPressed,
               onNext: _goToNextTab,

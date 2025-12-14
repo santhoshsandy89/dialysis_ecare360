@@ -1,4 +1,5 @@
 import 'package:ecare360/common/widgets/helper_widget.dart';
+import 'package:ecare360/data/models/session_data_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -14,6 +15,8 @@ class TreatmentParametersPage extends StatefulWidget {
   final TextEditingController heparinRateController;
   final TextEditingController needleSizeController;
   final TextEditingController tmpController;
+  final List<BloodPressureEntry> initialBpEntries;
+  final Function(List<BloodPressureEntry>) onBpEntriesChanged;
   final VoidCallback? onSave;
   final VoidCallback? onComplete;
   final VoidCallback? onNext;
@@ -33,6 +36,8 @@ class TreatmentParametersPage extends StatefulWidget {
     required this.heparinRateController,
     required this.needleSizeController,
     required this.tmpController,
+    required this.initialBpEntries,
+    required this.onBpEntriesChanged,
     this.onSave,
     this.onComplete,
     this.onNext,
@@ -47,12 +52,55 @@ class TreatmentParametersPage extends StatefulWidget {
 
 class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
   List<BPEntry> bpEntries = [];
-  int hoursAdded = 1;
 
   @override
   void initState() {
     super.initState();
-    _addHour();
+    if (widget.initialBpEntries.isNotEmpty) {
+      for (var entry in widget.initialBpEntries) {
+        bpEntries.add(BPEntry("$entry.time min BP", entry.bpValue));
+      }
+    } else {
+      _addHour(); // Add initial hour if no data
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var entry in bpEntries) {
+      entry.controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _addHour() {
+    setState(() {
+      final int currentMinutes = bpEntries.length * 15;
+      for (int i = 0; i < 4; i++) {
+        int minutes = currentMinutes + ((i + 1) * 15);
+        if (minutes <= 24 * 60) {
+          // Limit to 24 hours (1440 minutes)
+          bpEntries.add(BPEntry("$minutes min BP"));
+        }
+      }
+      _notifyBpEntriesChanged();
+    });
+  }
+
+  void _removeHour(int startIndex) {
+    setState(() {
+      bpEntries.removeRange(startIndex, startIndex + 4);
+      _notifyBpEntriesChanged();
+    });
+  }
+
+  void _notifyBpEntriesChanged() {
+    final List<BloodPressureEntry> currentEntries = bpEntries
+        .where((entry) => entry.controller.text.isNotEmpty)
+        .map((entry) => BloodPressureEntry(
+            time: entry.minutes, bpValue: entry.controller.text))
+        .toList();
+    widget.onBpEntriesChanged(currentEntries);
   }
 
   @override
@@ -80,7 +128,8 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
                     children: [
                       ..._buildBPFields(),
                       const SizedBox(height: 12),
-                      if (hoursAdded < 24) // allow long sessions
+                      if (!widget
+                          .readOnly) // Only show add hour if not read-only
                         Align(
                           alignment: Alignment.centerLeft,
                           child: OutlinedButton.icon(
@@ -93,11 +142,13 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
                   ),
                   rowInput("Actual Blood Flow Rate (mL/min)",
                       controller: widget.actualBloodFlowRateController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   rowInput("Total Blood Processed (mL)",
                       controller: widget.totalBloodProcessedController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   rowInput("Dialyzer Type",
                       controller: widget.dialyzerTypeController,
@@ -105,15 +156,18 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
                   const SizedBox(height: 12),
                   rowInput("Arterial Pressure (mmHg)",
                       controller: widget.arterialPressureController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   rowInput("Actual Dialysate Flow Rate (mL/min)",
                       controller: widget.actualDialysateFlowRateController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   rowInput("Heparin Bolus (units)",
                       controller: widget.heparinBolusController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   DropdownButtonFormField(
                     decoration: const InputDecoration(
@@ -128,49 +182,46 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
                   const SizedBox(height: 12),
                   rowInput("Venous Pressure (mmHg)",
                       controller: widget.venousPressureController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   rowInput("Actual Ultrafiltration (mL)",
                       controller: widget.actualUltrafiltrationController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   rowInput("Heparin Rate (units/hr)",
                       controller: widget.heparinRateController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   rowInput("Needle Size (Gauge)",
                       controller: widget.needleSizeController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                   const SizedBox(height: 12),
                   rowInput("TMP (mmHg)",
                       controller: widget.tmpController,
-                      readOnly: widget.readOnly),
+                      readOnly: widget.readOnly,
+                      keyboardType: TextInputType.number),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 24),
-          actionButtons(context,
-              onSave: widget.onSave,
-              onComplete: widget.onComplete,
+          actionButtons(context, onSave: () {
+            _notifyBpEntriesChanged();
+            widget.onSave?.call();
+          }, onComplete: () {
+            _notifyBpEntriesChanged();
+            widget.onComplete?.call();
+          },
               onNext: widget.onNext,
               onCancel: widget.onCancel,
               readOnly: widget.readOnly),
         ],
       ),
     );
-  }
-
-  void _addHour() {
-    final startMinute = bpEntries.length * 15;
-
-    for (int i = 1; i <= 4; i++) {
-      bpEntries.add(BPEntry(startMinute + i * 15));
-    }
-
-    setState(() {
-      hoursAdded++;
-    });
   }
 
   List<Widget> _buildBPFields() {
@@ -180,12 +231,23 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
       widgets.add(
         Padding(
           padding: const EdgeInsets.only(top: 12, bottom: 6),
-          child: Text(
-            "Hour ${(i ~/ 4) + 1}",
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Hour ${(i ~/ 4) + 1}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              if (!widget.readOnly) // Only show remove button if not read-only
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline,
+                      color: Colors.red),
+                  onPressed: () => _removeHour(i),
+                ),
+            ],
           ),
         ),
       );
@@ -198,11 +260,10 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: rowInput(
-                  "${bpEntries[i + j].minutes} min BP",
+                  bpEntries[i + j].minutes,
                   controller: bpEntries[i + j].controller,
                   readOnly: widget.readOnly,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [BPFormatter()],
+                  isBPField: true,
                   hintText: "120/80",
                 ),
               ),
@@ -221,10 +282,11 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
 }
 
 class BPEntry {
-  final int minutes;
+  final String minutes;
   final TextEditingController controller;
 
-  BPEntry(this.minutes) : controller = TextEditingController();
+  BPEntry(this.minutes, [String? initialValue])
+      : controller = TextEditingController(text: initialValue);
 }
 
 class BPFormatter extends TextInputFormatter {

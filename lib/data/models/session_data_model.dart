@@ -6,6 +6,27 @@ enum SessionStatus {
   completed, // Session fully completed
 }
 
+class BloodPressureEntry {
+  final String time;
+  final String bpValue;
+
+  BloodPressureEntry({required this.time, required this.bpValue});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'time': time,
+      'bpValue': bpValue,
+    };
+  }
+
+  factory BloodPressureEntry.fromMap(Map<String, dynamic> map) {
+    return BloodPressureEntry(
+      time: map['time'] as String,
+      bpValue: map['bpValue'] as String,
+    );
+  }
+}
+
 class SessionData {
   final String patientId;
   final DateTime sessionDate;
@@ -157,6 +178,7 @@ class TreatmentParameters {
   final String heparinRate;
   final String needleSize;
   final String tmp;
+  final List<BloodPressureEntry> bloodPressureEntries;
 
   TreatmentParameters({
     required this.actualBloodFlowRate,
@@ -171,6 +193,7 @@ class TreatmentParameters {
     required this.heparinRate,
     required this.needleSize,
     required this.tmp,
+    this.bloodPressureEntries = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -187,10 +210,16 @@ class TreatmentParameters {
       'heparinRate': heparinRate,
       'needleSize': needleSize,
       'tmp': tmp,
+      'bloodPressureEntries': bloodPressureEntries.map((e) => e.toMap()).toList(),
     };
   }
 
   factory TreatmentParameters.fromMap(Map<String, dynamic> map) {
+    var bpEntriesList = map['bloodPressureEntries'] as List<dynamic>?;
+    List<BloodPressureEntry> entries = bpEntriesList != null
+        ? bpEntriesList.map((e) => BloodPressureEntry.fromMap(e as Map<String, dynamic>)).toList()
+        : [];
+
     return TreatmentParameters(
       actualBloodFlowRate: map['actualBloodFlowRate'] ?? '',
       totalBloodProcessed: map['totalBloodProcessed'] ?? '',
@@ -204,6 +233,7 @@ class TreatmentParameters {
       heparinRate: map['heparinRate'] ?? '',
       needleSize: map['needleSize'] ?? '',
       tmp: map['tmp'] ?? '',
+      bloodPressureEntries: entries,
     );
   }
 

@@ -81,6 +81,20 @@ class ReportViewerScreen extends StatelessWidget {
             _buildDetailRow(
                 'Needle Size', sessionData.treatmentParameters.needleSize),
             _buildDetailRow('TMP', sessionData.treatmentParameters.tmp),
+            // Display dynamic Blood Pressure entries
+            if (sessionData.treatmentParameters.bloodPressureEntries.isNotEmpty)
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.SizedBox(height: 10),
+                  pw.Text('Blood Pressure Readings:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                  pw.SizedBox(height: 5),
+                  ...sessionData.treatmentParameters.bloodPressureEntries.map(
+                    (bpEntry) => _buildDetailRow(bpEntry.time, bpEntry.bpValue),
+                  ),
+                  pw.SizedBox(height: 10),
+                ],
+              ),
           ]),
           _buildSection(context, 'Laboratory Values', [
             _buildDetailRow('Hemoglobin', sessionData.laboratoryValues.preBun),
