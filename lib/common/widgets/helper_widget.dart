@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../features/session_management/presentation/pages/treatment_parameters_page.dart';
 
 Widget sectionTitle(String text) {
   return Padding(
@@ -10,15 +13,29 @@ Widget sectionTitle(String text) {
   );
 }
 
-Widget rowInput(String label, {TextEditingController? controller, bool readOnly = false}) {
+Widget rowInput(
+  String label, {
+  TextEditingController? controller,
+  bool readOnly = false,
+  String? hintText,
+  bool isBPField = false,
+  TextInputType? keyboardType,
+  List<TextInputFormatter>? inputFormatters,
+}) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 14),
     child: TextField(
       controller: controller,
       readOnly: readOnly,
+      keyboardType: keyboardType ?? TextInputType.text,
+      inputFormatters: inputFormatters ??
+          (isBPField
+              ? [FilteringTextInputFormatter.digitsOnly, BPFormatter()]
+              : null),
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
+        hintText: hintText ?? '',
       ),
     ),
   );
@@ -71,7 +88,12 @@ Widget sectionCard(
   );
 }
 
-Widget actionButtons(BuildContext context, {VoidCallback? onSave, VoidCallback? onComplete, VoidCallback? onNext, VoidCallback? onCancel, bool readOnly = false}) {
+Widget actionButtons(BuildContext context,
+    {VoidCallback? onSave,
+    VoidCallback? onComplete,
+    VoidCallback? onNext,
+    VoidCallback? onCancel,
+    bool readOnly = false}) {
   return Padding(
     padding: const EdgeInsets.only(top: 20, bottom: 40),
     child: Row(

@@ -31,6 +31,9 @@ enum TreatmentMainType {
   Hemoperfusion,
   Plasmapheresis,
   Hemodiafiltration,
+  Hemodialysis,
+  PeritonealDialysis,
+  slud,
 }
 
 enum CrrtSubType {
@@ -60,7 +63,6 @@ class _ScheduleTreatmentSectionState
   final _emailController = TextEditingController();
   final _dobController = TextEditingController();
   String? _selectedPatientMrn;
-
   DateTime? _patientDob;
   BloodType? _patientBloodType;
 
@@ -234,8 +236,17 @@ class _ScheduleTreatmentSectionState
                             CustomTextField(
                               controller: _emailController,
                               labelText: "Email",
-                              validator: (v) =>
-                                  v!.isEmpty ? "Email is required" : null,
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return null;
+                                }
+                                final emailRegex = RegExp(
+                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                );
+                                return emailRegex.hasMatch(v)
+                                    ? null
+                                    : "Invalid email";
+                              },
                             ),
                             const SizedBox(height: 20),
 
@@ -306,6 +317,8 @@ class _ScheduleTreatmentSectionState
     DateTime? scheduleDate;
     TimeOfDay? scheduleTime;
 
+    final _formKey = GlobalKey<FormState>();
+
     const Map<BloodAccessType, String> bloodAccessTypeLabels = {
       BloodAccessType.Fistula: "Fistula",
       BloodAccessType.Graft: "Graft",
@@ -323,14 +336,15 @@ class _ScheduleTreatmentSectionState
       TreatmentMainType.Hemoperfusion: "Hemoperfusion",
       TreatmentMainType.Plasmapheresis: "Plasmapheresis",
       TreatmentMainType.Hemodiafiltration: "Hemodiafiltration",
+      TreatmentMainType.slud: "SLUD",
     };
 
     const Map<CrrtSubType, String> crrtSubLabels = {
-      CrrtSubType.CVVHD: "CVVHD (Continuous Veno-Venous Hemodialysis)",
-      CrrtSubType.CVVHF: "CVVHF (Continuous Veno-Venous Hemofiltration)",
-      CrrtSubType.CVVHDF: "CVVHDF (Continuous Veno-Venous Hemodiafiltration)",
-      CrrtSubType.SCUF: "SCUF (Slow Continuous Ultrafiltration)",
-      CrrtSubType.SLED: "SLED (Sustained Low-Efficiency Dialysis)",
+      CrrtSubType.CVVHD: "CVVHD",
+      CrrtSubType.CVVHF: "CVVHF",
+      CrrtSubType.CVVHDF: "CVVHDF",
+      CrrtSubType.SCUF: "SCUF",
+      CrrtSubType.SLED: "SLED",
     };
 
     final durationController = TextEditingController();
@@ -371,13 +385,13 @@ class _ScheduleTreatmentSectionState
                         vertical: 16, horizontal: 20),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(20)),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // MAIN TITLE
                         Text(
                           "Schedule Dialysis Treatment",
                           style: Theme.of(context)
@@ -389,8 +403,6 @@ class _ScheduleTreatmentSectionState
                               ),
                         ),
                         const SizedBox(height: 6),
-
-                        // SUB HEADER
                         Text(
                           "Enter scheduling information only — detailed session data will be captured during treatment.",
                           style:
@@ -405,280 +417,301 @@ class _ScheduleTreatmentSectionState
                     ),
                   ),
 
-                  // 🔹 FORM CONTENT (scrollable)
+                  // 🔹 FORM CONTENT
                   Flexible(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 20),
-                      child: Column(
-                        children: [
-                          // SELECT PATIENT
-                          DropdownButtonFormField<PatientModel>(
-                            value: selectedPatient,
-                            decoration: const InputDecoration(
-                              labelText: "Select Patient (MRN)",
-                              border: OutlineInputBorder(),
-                            ),
-                            items: patientList.map((p) {
-                              return DropdownMenuItem(
-                                value: p,
-                                child: Text(
-                                    "${p.mrnNo} - ${p.firstName} ${p.lastName}"),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedPatient = value;
-                                AppLogger.debug(
-                                    'SCHEDULE_TREATMENT_BOTTOM_SHEET: Selected Patient MRN: ${selectedPatient?.mrnNo}');
-                              });
-                            },
-                            validator: (v) =>
-                                v == null ? "Please select a patient" : null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // TREATMENT TYPE
-                          DropdownButtonFormField<TreatmentMainType>(
-                            value: mainType,
-                            decoration: const InputDecoration(
-                              labelText: "Treatment Type",
-                              border: OutlineInputBorder(),
-                            ),
-                            items: TreatmentMainType.values.map((t) {
-                              return DropdownMenuItem(
-                                value: t,
-                                child: Text(treatmentMainLabels[t]!),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                mainType = value;
-                                crrtSubType = null; // reset sub option
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          if (mainType == TreatmentMainType.CRRT)
-                            DropdownButtonFormField<CrrtSubType>(
-                              value: crrtSubType,
+                      padding: const EdgeInsets.all(16),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            // PATIENT
+                            DropdownButtonFormField<PatientModel>(
+                              value: selectedPatient,
                               decoration: const InputDecoration(
-                                labelText: "CRRT Sub Type",
+                                labelText: "Select Patient (MRN) *",
                                 border: OutlineInputBorder(),
                               ),
-                              items: CrrtSubType.values.map((t) {
+                              items: patientList.map((p) {
                                 return DropdownMenuItem(
-                                  value: t,
-                                  child: Text(crrtSubLabels[t]!),
+                                  value: p,
+                                  child: Text(
+                                      "${p.mrnNo} - ${p.firstName} ${p.lastName}"),
                                 );
                               }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  crrtSubType = value;
-                                });
-                              },
+                              onChanged: (v) =>
+                                  setState(() => selectedPatient = v),
+                              validator: (v) =>
+                                  v == null ? "Patient is required" : null,
                             ),
+                            const SizedBox(height: 16),
 
-                          const SizedBox(height: 16),
-                          // SCHEDULE DATE
-                          CustomTextField(
-                            labelText: "Scheduled Date",
-                            readOnly: true,
-                            controller: TextEditingController(
-                              text: scheduleDate == null
-                                  ? ""
-                                  : DateFormat('dd-MM-yyyy')
-                                      .format(scheduleDate!),
-                            ),
-                            suffixIcon:
-                                const Icon(Icons.calendar_today_outlined),
-                            onTap: () async {
-                              final date = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-                              if (date != null) {
-                                setState(() => scheduleDate = date);
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // SCHEDULE TIME
-                          CustomTextField(
-                            labelText: "Scheduled Time",
-                            readOnly: true,
-                            controller: TextEditingController(
-                              text: scheduleTime == null
-                                  ? ""
-                                  : scheduleTime!.format(context),
-                            ),
-                            suffixIcon: const Icon(Icons.access_time),
-                            onTap: () async {
-                              final time = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (time != null) {
-                                setState(() => scheduleTime = time);
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // DURATION
-                          CustomTextField(
-                            controller: durationController,
-                            labelText: "Planned Duration (minutes)",
-                            keyboardType: TextInputType.number,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // LOCATION
-                          CustomTextField(
-                            controller: locationController,
-                            labelText: "Location / Station",
-                          ),
-                          const SizedBox(height: 16),
-
-                          // ASSIGNED NURSE
-                          CustomTextField(
-                            controller: nurseController,
-                            labelText: "Assigned Nurse",
-                          ),
-                          const SizedBox(height: 32),
-
-                          // SECTION HEADER
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "Hemodialysis Planning Parameters",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium!
-                                  .copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // ACCESS TYPE
-                          DropdownButtonFormField<BloodAccessType>(
-                            value: accessType,
-                            decoration: const InputDecoration(
-                              labelText: "Access Type",
-                              border: OutlineInputBorder(),
-                            ),
-                            items: BloodAccessType.values
-                                .map((t) => DropdownMenuItem(
-                                      value: t,
-                                      child: Text(bloodAccessTypeLabels[t]!),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                accessType = value;
-                                bloodAccessSubType = null;
-                              });
-                            },
-                          ),
-
-                          const SizedBox(height: 16),
-                          if (accessType == BloodAccessType.Catheter)
-                            DropdownButtonFormField<BloodAccessSubType>(
-                              value: bloodAccessSubType,
+                            // TREATMENT TYPE
+                            DropdownButtonFormField<TreatmentMainType>(
+                              value: mainType,
                               decoration: const InputDecoration(
-                                labelText: "Catheter Sub Type",
+                                labelText: "Treatment Type *",
                                 border: OutlineInputBorder(),
                               ),
-                              items: BloodAccessSubType.values.map((t) {
+                              items: TreatmentMainType.values.map((t) {
                                 return DropdownMenuItem(
                                   value: t,
-                                  child: Text(catheterSubTypeLabels[t]!),
+                                  child: Text(treatmentMainLabels[t] ?? t.name),
                                 );
                               }).toList(),
-                              onChanged: (value) {
+                              onChanged: (v) {
                                 setState(() {
-                                  bloodAccessSubType = value;
+                                  mainType = v;
+                                  crrtSubType = null;
                                 });
                               },
+                              validator: (v) =>
+                                  v == null ? "Treatment type required" : null,
                             ),
-                          const SizedBox(height: 16),
+                            const SizedBox(height: 16),
 
-                          // UF GOAL
-                          CustomTextField(
-                            controller: ufGoalController,
-                            labelText: "Target Ultrafiltration Goal (mL)",
-                            keyboardType: TextInputType.number,
-                          ),
-                          const SizedBox(height: 16),
+                            // CRRT SUBTYPE
+                            if (mainType == TreatmentMainType.CRRT)
+                              DropdownButtonFormField<CrrtSubType>(
+                                value: crrtSubType,
+                                decoration: const InputDecoration(
+                                  labelText: "CRRT Sub Type *",
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: CrrtSubType.values.map((t) {
+                                  return DropdownMenuItem(
+                                    value: t,
+                                    child: Text(crrtSubLabels[t]!),
+                                  );
+                                }).toList(),
+                                onChanged: (v) =>
+                                    setState(() => crrtSubType = v),
+                                validator: (v) =>
+                                    v == null ? "CRRT subtype required" : null,
+                              ),
+                            const SizedBox(height: 16),
 
-                          // NOTES
-                          CustomTextField(
-                            controller: notesController,
-                            labelText: "Scheduling Notes",
-                          ),
-                          const SizedBox(height: 20),
-
-                          // SUBMIT BUTTON
-                          CustomButton(
-                            text: "Schedule Treatment",
-                            icon: Icons.event_available,
-                            onPressed: () async {
-                              if (selectedPatient == null ||
-                                  mainType == null ||
-                                  scheduleDate == null ||
-                                  scheduleTime == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text(
-                                          "Please fill all required fields")),
+                            // DATE
+                            CustomTextField(
+                              labelText: "Scheduled Date *",
+                              readOnly: true,
+                              controller: TextEditingController(
+                                text: scheduleDate == null
+                                    ? ""
+                                    : DateFormat('dd-MM-yyyy')
+                                        .format(scheduleDate!),
+                              ),
+                              validator: (_) =>
+                                  scheduleDate == null ? "Date required" : null,
+                              onTap: () async {
+                                final date = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2100),
                                 );
-                                return;
-                              }
+                                if (date != null) {
+                                  setState(() => scheduleDate = date);
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 16),
 
-                              final treatment = Treatment(
-                                patient: selectedPatient!,
-                                treatmentMainType: mainType!,
-                                crrtSubType: mainType == TreatmentMainType.CRRT
-                                    ? crrtSubType
+                            // TIME
+                            CustomTextField(
+                              labelText: "Scheduled Time *",
+                              readOnly: true,
+                              controller: TextEditingController(
+                                text: scheduleTime == null
+                                    ? ""
+                                    : scheduleTime!.format(context),
+                              ),
+                              validator: (_) =>
+                                  scheduleTime == null ? "Time required" : null,
+                              onTap: () async {
+                                final time = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
+                                );
+                                if (time != null) {
+                                  setState(() => scheduleTime = time);
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 16),
+
+                            // DURATION
+                            CustomTextField(
+                              controller: durationController,
+                              labelText: "Planned Duration (minutes) *",
+                              keyboardType: TextInputType.number,
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return "Duration is required";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+
+                            // LOCATION
+                            CustomTextField(
+                              controller: locationController,
+                              labelText: "Location / Station",
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return "Location is required";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+
+                            // NURSE
+                            CustomTextField(
+                              controller: nurseController,
+                              labelText: "Assigned Nurse",
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return "Assigned Nurse is required";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 24),
+
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "Hemodialysis Planning Parameters",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium!
+                                    .copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // ACCESS TYPE
+                            DropdownButtonFormField<BloodAccessType>(
+                              value: accessType,
+                              decoration: const InputDecoration(
+                                labelText: "Access Type *",
+                                border: OutlineInputBorder(),
+                              ),
+                              items: BloodAccessType.values.map((t) {
+                                return DropdownMenuItem(
+                                  value: t,
+                                  child: Text(bloodAccessTypeLabels[t]!),
+                                );
+                              }).toList(),
+                              onChanged: (v) {
+                                setState(() {
+                                  accessType = v;
+                                  bloodAccessSubType = null;
+                                });
+                              },
+                              validator: (v) =>
+                                  v == null ? "Access type required" : null,
+                            ),
+                            const SizedBox(height: 16),
+
+                            if (accessType == BloodAccessType.Catheter)
+                              DropdownButtonFormField<BloodAccessSubType>(
+                                value: bloodAccessSubType,
+                                decoration: const InputDecoration(
+                                  labelText: "Catheter Sub Type *",
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: BloodAccessSubType.values.map((t) {
+                                  return DropdownMenuItem(
+                                    value: t,
+                                    child: Text(catheterSubTypeLabels[t]!),
+                                  );
+                                }).toList(),
+                                onChanged: (v) =>
+                                    setState(() => bloodAccessSubType = v),
+                                validator: (v) => v == null
+                                    ? "Catheter subtype required"
                                     : null,
-                                scheduledDate: scheduleDate!,
-                                scheduledTime: scheduleTime!,
-                                durationMinutes:
-                                    int.tryParse(durationController.text) ?? 0,
-                                location: locationController.text,
-                                nurse: nurseController.text,
-                                accessType: accessType!,
-                                ufGoal: int.tryParse(ufGoalController.text),
-                                notes: notesController.text,
-                                status:
-                                    SessionStatus.pending, // Set initial status
-                              );
+                              ),
+                            const SizedBox(height: 16),
 
-                              await ref
-                                  .read(localStorageProvider.notifier)
-                                  .addTreatment(treatment);
+                            // UF GOAL
+                            CustomTextField(
+                              controller: ufGoalController,
+                              labelText: "Target Ultrafiltration Goal (mL)",
+                              keyboardType: TextInputType.number,
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return "Target Ultrafiltration Goal is required";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
 
-                              Navigator.pop(context, true);
-                            },
-                          ),
-                          const SizedBox(height: 12),
+                            // NOTES
+                            CustomTextField(
+                              controller: notesController,
+                              labelText: "Scheduling Notes",
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return "Scheduling Notes is required";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 24),
 
-                          // CANCEL BUTTON
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(
-                              "Cancel",
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                                fontWeight: FontWeight.bold,
+                            // SUBMIT
+                            CustomButton(
+                              text: "Schedule Treatment",
+                              icon: Icons.event_available,
+                              onPressed: () async {
+                                if (!_formKey.currentState!.validate()) return;
+
+                                final treatment = Treatment(
+                                  patient: selectedPatient!,
+                                  treatmentMainType: mainType!,
+                                  crrtSubType:
+                                      mainType == TreatmentMainType.CRRT
+                                          ? crrtSubType
+                                          : null,
+                                  scheduledDate: scheduleDate!,
+                                  scheduledTime: scheduleTime!,
+                                  durationMinutes:
+                                      int.tryParse(durationController.text) ??
+                                          0,
+                                  location: locationController.text,
+                                  nurse: nurseController.text,
+                                  accessType: accessType!,
+                                  ufGoal: int.tryParse(ufGoalController.text),
+                                  notes: notesController.text,
+                                  status: SessionStatus.pending,
+                                );
+
+                                await ref
+                                    .read(localStorageProvider.notifier)
+                                    .addTreatment(treatment);
+
+                                Navigator.pop(context, true);
+                              },
+                            ),
+                            const SizedBox(height: 12),
+
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                "Cancel",
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
