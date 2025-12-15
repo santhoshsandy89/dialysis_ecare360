@@ -12,30 +12,15 @@ import '../../core/utils/logger.dart';
 
 /// Local storage service using SharedPreferences
 class LocalStorageService {
-  static SharedPreferences? _prefs;
   static const String _prefix = 'ecare360_';
   static const String patientsKey = "patients";
   static const String treatmentsKey = "treatments";
 
-  /// Initialize the service
-  static Future<void> init() async {
-    _prefs ??= await SharedPreferences.getInstance();
-    AppLogger.info('LocalStorageService initialized');
-  }
-
-  /// Get SharedPreferences instance
-  static SharedPreferences get _instance {
-    if (_prefs == null) {
-      throw Exception(
-          'LocalStorageService not initialized. Call init() first.');
-    }
-    return _prefs!;
-  }
-
   /// Store a string value
   static Future<bool> setString(String key, String value) async {
     try {
-      final result = await _instance.setString('$_prefix$key', value);
+      final prefs = await SharedPreferences.getInstance();
+      final result = await prefs.setString('$_prefix$key', value);
       AppLogger.debug('Stored string: $key = $value');
       return result;
     } catch (e) {
@@ -47,7 +32,8 @@ class LocalStorageService {
   /// Get a string value
   static Future<String?> getString(String key) async {
     try {
-      final value = _instance.getString('$_prefix$key');
+      final prefs = await SharedPreferences.getInstance();
+      final value = prefs.getString('$_prefix$key');
       AppLogger.debug('Retrieved string for key : $_prefix$key = $value');
       return value;
     } catch (e) {
@@ -59,7 +45,8 @@ class LocalStorageService {
   /// Store an integer value
   static Future<bool> setInt(String key, int value) async {
     try {
-      final result = await _instance.setInt('$_prefix$key', value);
+      final prefs = await SharedPreferences.getInstance();
+      final result = await prefs.setInt('$_prefix$key', value);
       AppLogger.debug('Stored int: $key = $value');
       return result;
     } catch (e) {
@@ -71,7 +58,8 @@ class LocalStorageService {
   /// Get an integer value
   static Future<int?> getInt(String key) async {
     try {
-      final value = _instance.getInt('$_prefix$key');
+      final prefs = await SharedPreferences.getInstance();
+      final value = prefs.getInt('$_prefix$key');
       AppLogger.debug('Retrieved int: $key = $value');
       return value;
     } catch (e) {
@@ -83,7 +71,8 @@ class LocalStorageService {
   /// Store a boolean value
   static Future<bool> setBool(String key, bool value) async {
     try {
-      final result = await _instance.setBool('$_prefix$key', value);
+      final prefs = await SharedPreferences.getInstance();
+      final result = await prefs.setBool('$_prefix$key', value);
       AppLogger.debug('Stored bool: $key = $value');
       return result;
     } catch (e) {
@@ -95,7 +84,8 @@ class LocalStorageService {
   /// Get a boolean value
   static Future<bool?> getBool(String key) async {
     try {
-      final value = _instance.getBool('$_prefix$key');
+      final prefs = await SharedPreferences.getInstance();
+      final value = prefs.getBool('$_prefix$key');
       AppLogger.debug('Retrieved bool: $key = $value');
       return value;
     } catch (e) {
@@ -107,7 +97,8 @@ class LocalStorageService {
   /// Store a double value
   static Future<bool> setDouble(String key, double value) async {
     try {
-      final result = await _instance.setDouble('$_prefix$key', value);
+      final prefs = await SharedPreferences.getInstance();
+      final result = await prefs.setDouble('$_prefix$key', value);
       AppLogger.debug('Stored double: $key = $value');
       return result;
     } catch (e) {
@@ -119,7 +110,8 @@ class LocalStorageService {
   /// Get a double value
   static Future<double?> getDouble(String key) async {
     try {
-      final value = _instance.getDouble('$_prefix$key');
+      final prefs = await SharedPreferences.getInstance();
+      final value = prefs.getDouble('$_prefix$key');
       AppLogger.debug('Retrieved double: $key = $value');
       return value;
     } catch (e) {
@@ -131,7 +123,8 @@ class LocalStorageService {
   /// Store a list of strings
   static Future<bool> setStringList(String key, List<String> value) async {
     try {
-      final result = await _instance.setStringList('$_prefix$key', value);
+      final prefs = await SharedPreferences.getInstance();
+      final result = await prefs.setStringList('$_prefix$key', value);
       AppLogger.debug('Stored string list: $key = $value');
       return result;
     } catch (e) {
@@ -143,7 +136,8 @@ class LocalStorageService {
   /// Get a list of strings
   static Future<List<String>?> getStringList(String key) async {
     try {
-      final value = _instance.getStringList('$_prefix$key');
+      final prefs = await SharedPreferences.getInstance();
+      final value = prefs.getStringList('$_prefix$key');
       AppLogger.debug('Retrieved string list: $key = $value');
       return value;
     } catch (e) {
@@ -183,7 +177,8 @@ class LocalStorageService {
   /// Remove a value
   static Future<bool> remove(String key) async {
     try {
-      final result = await _instance.remove('$_prefix$key');
+      final prefs = await SharedPreferences.getInstance();
+      final result = await prefs.remove('$_prefix$key');
       AppLogger.debug('Removed: $key');
       return result;
     } catch (e) {
@@ -202,7 +197,7 @@ class LocalStorageService {
   static const String _sessionDataPrefix = 'ecare360_session_data_';
 
   static Future<void> savePatientsIdList(List<PatientIDModel> patients) async {
-    final prefs = await _instance;
+    final prefs = await SharedPreferences.getInstance();
     final String encodedList =
         json.encode(patients.map((p) => p.toJson()).toList());
     await prefs.setString(_patientsKey, encodedList);
@@ -210,7 +205,7 @@ class LocalStorageService {
   }
 
   static Future<List<PatientIDModel>> getPatientsIdList() async {
-    final prefs = await _instance;
+    final prefs = await SharedPreferences.getInstance();
     final String? encodedList = prefs.getString(_patientsKey);
     if (encodedList == null) {
       return [];
@@ -221,7 +216,7 @@ class LocalStorageService {
   }
 
   static Future<void> savePatientsList(List<PatientModel> patients) async {
-    final prefs = await _instance;
+    final prefs = await SharedPreferences.getInstance();
     final String encodedList =
         json.encode(patients.map((p) => p.toJson()).toList());
     await prefs.setString(_patientsKey, encodedList);
@@ -229,7 +224,7 @@ class LocalStorageService {
   }
 
   static Future<List<PatientModel>> getPatientsList() async {
-    final prefs = await _instance;
+    final prefs = await SharedPreferences.getInstance();
     final String? encodedList = prefs.getString(_patientsKey);
     if (encodedList == null) {
       return [];
@@ -240,7 +235,7 @@ class LocalStorageService {
   }
 
   static Future<void> saveDoctorsList(List<DoctorModel> doctors) async {
-    final prefs = await _instance;
+    final prefs = await SharedPreferences.getInstance();
     final String encodedList =
         json.encode(doctors.map((d) => d.toJson()).toList());
     await prefs.setString(_doctorsKey, encodedList);
@@ -248,7 +243,7 @@ class LocalStorageService {
   }
 
   static Future<List<DoctorModel>> getDoctorsList() async {
-    final prefs = await _instance;
+    final prefs = await SharedPreferences.getInstance();
     final String? encodedList = prefs.getString(_doctorsKey);
     if (encodedList == null) {
       return [];
@@ -260,7 +255,7 @@ class LocalStorageService {
 
   // New methods for Bed Statuses
   static Future<void> saveBedStatuses(List<BedStatusModel> statuses) async {
-    final prefs = _instance;
+    final prefs = await SharedPreferences.getInstance();
     final String encodedList =
         json.encode(statuses.map((s) => s.toJson()).toList());
     await prefs.setString(_bedStatusesKey, encodedList);
@@ -268,7 +263,7 @@ class LocalStorageService {
   }
 
   static Future<List<BedStatusModel>> getBedStatuses() async {
-    final prefs = await _instance;
+    final prefs = await SharedPreferences.getInstance();
     final String? encodedList = prefs.getString(_bedStatusesKey);
     if (encodedList == null) {
       return [];
@@ -281,7 +276,8 @@ class LocalStorageService {
   /// Clear all stored values
   static Future<bool> clear() async {
     try {
-      final result = await _instance.clear();
+      final prefs = await SharedPreferences.getInstance();
+      final result = await prefs.clear();
       AppLogger.info('Cleared all stored values');
       return result;
     } catch (e) {
@@ -335,10 +331,10 @@ class LocalStorageService {
     await prefs.setStringList(treatmentsKey, data);
   }
 
-  /// Check if a key exists
-  static bool containsKey(String key) {
+  static Future<bool> containsKey(String key) async {
     try {
-      final result = _instance.containsKey('$_prefix$key');
+      final prefs = await SharedPreferences.getInstance();
+      final result = prefs.containsKey('$_prefix$key');
       AppLogger.debug('Contains key: $key = $result');
       return result;
     } catch (e) {
@@ -347,10 +343,10 @@ class LocalStorageService {
     }
   }
 
-  /// Get all keys
-  static Set<String> getKeys() {
+  static Future<Set<String>> getKeys() async {
     try {
-      final keys = _instance
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs
           .getKeys()
           .where((key) => key.startsWith(_prefix))
           .map((key) => key.substring(_prefix.length))

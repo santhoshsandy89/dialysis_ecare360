@@ -211,14 +211,6 @@ class AuthRepository {
     try {
       print('AuthRepository: Getting current user...');
 
-      // Initialize LocalStorageService if not already initialized
-      try {
-        await LocalStorageService.init(); // Use the static method here
-      } catch (e) {
-        print(
-            'AuthRepository: LocalStorageService already initialized or error: $e');
-      }
-
       final userData =
           await LocalStorageService.getString(AppConstants.userKey);
       final storedUsername =
@@ -273,14 +265,6 @@ class AuthRepository {
   Future<bool> isAuthenticated() async {
     try {
       print('AuthRepository: Checking authentication...');
-
-      // Initialize LocalStorageService if not already initialized
-      try {
-        await LocalStorageService.init();
-      } catch (e) {
-        print(
-            'AuthRepository: LocalStorageService already initialized or error: $e');
-      }
 
       final token = await LocalStorageService.getString(
           AppConstants.tokenKey); // Use LocalStorageService

@@ -1,9 +1,11 @@
 import 'package:ecare360/common/widgets/helper_widget.dart';
 import 'package:ecare360/data/models/session_data_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ecare360/features/session_management/presentation/providers/bp_entry_list_provider.dart';
 import 'package:flutter/services.dart';
 
-class TreatmentParametersPage extends StatefulWidget {
+class TreatmentParametersPage extends ConsumerStatefulWidget {
   final TextEditingController actualBloodFlowRateController;
   final TextEditingController totalBloodProcessedController;
   final TextEditingController dialyzerTypeController;
@@ -46,97 +48,75 @@ class TreatmentParametersPage extends StatefulWidget {
   });
 
   @override
-  State<TreatmentParametersPage> createState() =>
+  ConsumerState<TreatmentParametersPage> createState() =>
       _TreatmentParametersPageState();
 }
 
-class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
-  List<BPEntry> bpEntries = [];
-  bool _isInitializedFromParent = false;
+class _TreatmentParametersPageState
+    extends ConsumerState<TreatmentParametersPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  final Map<String, TextEditingController> _bpEntryControllers = {};
 
   @override
   void initState() {
     super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (bpEntries.isEmpty && widget.initialBpEntries.isEmpty) {
-        _addHour();
-      }
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant TreatmentParametersPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (!_isInitializedFromParent && widget.initialBpEntries.isNotEmpty) {
-      for (var entry in bpEntries) {
-        entry.controller.dispose();
-      }
-
-      setState(() {
-        bpEntries = widget.initialBpEntries
-            .map((e) => BPEntry(e.time, e.bpValue))
-            .toList();
-        _isInitializedFromParent = true;
-      });
-    }
+    // Initial setup handled by Riverpod and _addInitialHours if needed
   }
 
   @override
   void dispose() {
-    for (var entry in bpEntries) {
-      entry.controller.dispose();
-    }
+    _bpEntryControllers.values.forEach((controller) => controller.dispose());
     super.dispose();
   }
 
-  void _addHour() {
-    setState(() {
-      final int currentMinutes = bpEntries.isEmpty ? 0 : bpEntries.last.minutes;
-      for (int i = 0; i < 4; i++) {
-        int minutes = currentMinutes + ((i + 1) * 15);
-        if (minutes <= 24 * 60) {
-          bpEntries.add(BPEntry(minutes));
-        }
+  void _addHour(WidgetRef ref) {
+    final bpEntryListNotifier = ref.read(bpEntryListProvider.notifier);
+    final currentBpEntries = ref.read(bpEntryListProvider);
+    final int currentMinutes = currentBpEntries.length * 15;
+
+    List<BloodPressureEntry> newEntries = [];
+    for (int i = 0; i < 4; i++) {
+      int minutes = currentMinutes + ((i + 1) * 15);
+      if (minutes <= 24 * 60) {
+        newEntries
+            .add(BloodPressureEntry(time: "$minutes min BP", bpValue: ""));
       }
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _notifyBpEntriesChanged();
-      });
-    });
+    }
+    bpEntryListNotifier.setBpEntries([...currentBpEntries, ...newEntries]);
   }
 
-  void _removeHour(int startIndex) {
-    setState(() {
-      bpEntries.removeRange(startIndex, startIndex + 4);
-      _notifyBpEntriesChanged();
-    });
-  }
-
-  void _notifyBpEntriesChanged() {
-    final List<BloodPressureEntry> currentEntries = bpEntries
-        .where((e) => e.controller.text.isNotEmpty)
-        .map(
-          (e) => BloodPressureEntry(
-            time: e.minutes,
-            bpValue: e.controller.text,
-          ),
-        )
-        .toList();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onBpEntriesChanged(currentEntries);
-    });
-  }
-
-  BPEntry _createEntry(int minutes, [String? value]) {
-    final entry = BPEntry(minutes, value);
-    entry.controller.addListener(_notifyBpEntriesChanged);
-    return entry;
+  void _removeHour(WidgetRef ref, int startIndex) {
+    final bpEntryListNotifier = ref.read(bpEntryListProvider.notifier);
+    final currentBpEntries =
+        List<BloodPressureEntry>.from(ref.read(bpEntryListProvider));
+    currentBpEntries.removeRange(startIndex, startIndex + 4);
+    bpEntryListNotifier.setBpEntries(currentBpEntries);
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    final bpEntries = ref.watch(bpEntryListProvider);
+    final bpEntryListNotifier = ref.read(bpEntryListProvider.notifier);
+
+    // If initialBpEntries are provided and the Riverpod state is empty,
+    // populate the Riverpod state. This handles the initial load from existing session data.
+    if (widget.initialBpEntries.isNotEmpty && bpEntries.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        bpEntryListNotifier.setBpEntries(widget.initialBpEntries);
+      });
+    }
+
+    if (bpEntries.isEmpty && !widget.readOnly) {
+      // Only add initial hour if no data and not read-only
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _addHour(ref);
+      });
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -158,7 +138,7 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
                     title: "Blood Pressure Monitoring",
                     icon: Icons.monitor_heart,
                     children: [
-                      ..._buildBPFields(),
+                      ..._buildBPFields(ref, bpEntries),
                       const SizedBox(height: 12),
                       if (!widget
                           .readOnly) // Only show add hour if not read-only
@@ -167,7 +147,7 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
                           child: OutlinedButton.icon(
                             icon: const Icon(Icons.add),
                             label: const Text("Add Hour"),
-                            onPressed: _addHour,
+                            onPressed: () => _addHour(ref),
                           ),
                         ),
                     ],
@@ -242,10 +222,12 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
           ),
           const SizedBox(height: 24),
           actionButtons(context, onSave: () {
-            _notifyBpEntriesChanged();
+            final bpEntries = ref.read(bpEntryListProvider);
+            widget.onBpEntriesChanged(bpEntries);
             widget.onSave?.call();
           }, onComplete: () {
-            _notifyBpEntriesChanged();
+            final bpEntries = ref.read(bpEntryListProvider);
+            widget.onBpEntriesChanged(bpEntries);
             widget.onComplete?.call();
           },
               onNext: widget.onNext,
@@ -256,8 +238,9 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
     );
   }
 
-  List<Widget> _buildBPFields() {
+  List<Widget> _buildBPFields(WidgetRef ref, List<BloodPressureEntry> bpEntries) {
     final List<Widget> widgets = [];
+    final bpEntryListNotifier = ref.read(bpEntryListProvider.notifier);
 
     for (int i = 0; i < bpEntries.length; i += 4) {
       widgets.add(
@@ -277,7 +260,7 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
                 IconButton(
                   icon: const Icon(Icons.remove_circle_outline,
                       color: Colors.red),
-                  onPressed: () => _removeHour(i),
+                  onPressed: () => _removeHour(ref, i),
                 ),
             ],
           ),
@@ -287,16 +270,31 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
       List<Widget> rowChildren = [];
       for (int j = 0; j < 4; j++) {
         if (i + j < bpEntries.length) {
+          final entry = bpEntries[i + j];
+          final controller = _bpEntryControllers.putIfAbsent(
+              entry.time,
+              () => TextEditingController(
+                  text: entry.bpValue)); // Ensure unique key for controller
+
+          controller.addListener(() {
+            final updatedEntry = BloodPressureEntry(
+              time: entry.time,
+              bpValue: controller.text,
+            );
+            bpEntryListNotifier.updateBpEntry(i + j, updatedEntry);
+          });
+
           rowChildren.add(
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: rowInput(
-                  "${bpEntries[i + j].minutes} min BP",
-                  controller: bpEntries[i + j].controller,
+                  entry.time,
+                  controller: controller,
                   readOnly: widget.readOnly,
                   isBPField: true,
                   hintText: "120/80",
+                  inputFormatters: [BPFormatter()],
                 ),
               ),
             ),
@@ -311,14 +309,6 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
 
     return widgets;
   }
-}
-
-class BPEntry {
-  final int minutes;
-  final TextEditingController controller;
-
-  BPEntry(this.minutes, [String? initialValue])
-      : controller = TextEditingController(text: initialValue);
 }
 
 class BPFormatter extends TextInputFormatter {
