@@ -174,7 +174,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       _heparinRateController.text = sessionData.treatmentParameters.heparinRate;
       _needleSizeController.text = sessionData.treatmentParameters.needleSize;
       _tmpController.text = sessionData.treatmentParameters.tmp;
-      _bloodPressureEntries = sessionData.treatmentParameters.bloodPressureEntries;
+      _bloodPressureEntries =
+          sessionData.treatmentParameters.bloodPressureEntries;
       // ... populate other treatment parameters
 
       // Laboratory Values

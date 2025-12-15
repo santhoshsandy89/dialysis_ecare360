@@ -1,16 +1,19 @@
 import 'dart:convert';
 
 enum SessionStatus {
-  pending, // Session not yet started or explicitly saved as pending
-  in_progress, // Session started and saved, but not completed
-  completed, // Session fully completed
+  pending,
+  in_progress,
+  completed,
 }
 
 class BloodPressureEntry {
-  final String time;
+  final int time;
   final String bpValue;
 
-  BloodPressureEntry({required this.time, required this.bpValue});
+  BloodPressureEntry({
+    required this.time,
+    required this.bpValue,
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -21,7 +24,7 @@ class BloodPressureEntry {
 
   factory BloodPressureEntry.fromMap(Map<String, dynamic> map) {
     return BloodPressureEntry(
-      time: map['time'] as String,
+      time: map['time'] as int,
       bpValue: map['bpValue'] as String,
     );
   }
@@ -158,11 +161,6 @@ class VitalSigns {
       postSpo2: map['postSpo2'] ?? '',
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory VitalSigns.fromJson(String source) =>
-      VitalSigns.fromMap(json.decode(source));
 }
 
 class TreatmentParameters {
@@ -196,30 +194,24 @@ class TreatmentParameters {
     this.bloodPressureEntries = const [],
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'actualBloodFlowRate': actualBloodFlowRate,
-      'totalBloodProcessed': totalBloodProcessed,
-      'dialyzerType': dialyzerType,
-      'arterialPressure': arterialPressure,
-      'actualDialysisFlowRate': actualDialysisFlowRate,
-      'heparinBolus': heparinBolus,
-      'accessCondition': accessCondition,
-      'venousPressure': venousPressure,
-      'actualUltrafiltration': actualUltrafiltration,
-      'heparinRate': heparinRate,
-      'needleSize': needleSize,
-      'tmp': tmp,
-      'bloodPressureEntries': bloodPressureEntries.map((e) => e.toMap()).toList(),
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'actualBloodFlowRate': actualBloodFlowRate,
+        'totalBloodProcessed': totalBloodProcessed,
+        'dialyzerType': dialyzerType,
+        'arterialPressure': arterialPressure,
+        'actualDialysisFlowRate': actualDialysisFlowRate,
+        'heparinBolus': heparinBolus,
+        'accessCondition': accessCondition,
+        'venousPressure': venousPressure,
+        'actualUltrafiltration': actualUltrafiltration,
+        'heparinRate': heparinRate,
+        'needleSize': needleSize,
+        'tmp': tmp,
+        'bloodPressureEntries':
+            bloodPressureEntries.map((e) => e.toMap()).toList(),
+      };
 
   factory TreatmentParameters.fromMap(Map<String, dynamic> map) {
-    var bpEntriesList = map['bloodPressureEntries'] as List<dynamic>?;
-    List<BloodPressureEntry> entries = bpEntriesList != null
-        ? bpEntriesList.map((e) => BloodPressureEntry.fromMap(e as Map<String, dynamic>)).toList()
-        : [];
-
     return TreatmentParameters(
       actualBloodFlowRate: map['actualBloodFlowRate'] ?? '',
       totalBloodProcessed: map['totalBloodProcessed'] ?? '',
@@ -233,14 +225,12 @@ class TreatmentParameters {
       heparinRate: map['heparinRate'] ?? '',
       needleSize: map['needleSize'] ?? '',
       tmp: map['tmp'] ?? '',
-      bloodPressureEntries: entries,
+      bloodPressureEntries: (map['bloodPressureEntries'] as List<dynamic>?)
+              ?.map((e) => BloodPressureEntry.fromMap(e))
+              .toList() ??
+          [],
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory TreatmentParameters.fromJson(String source) =>
-      TreatmentParameters.fromMap(json.decode(source));
 }
 
 class LaboratoryValues {
@@ -313,11 +303,6 @@ class LaboratoryValues {
       postSGPT: map['postSGPT'] ?? '',
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory LaboratoryValues.fromJson(String source) =>
-      LaboratoryValues.fromMap(json.decode(source));
 }
 
 class ClinicalNotes {
@@ -362,9 +347,4 @@ class ClinicalNotes {
       remarks: map['remarks'] ?? '',
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory ClinicalNotes.fromJson(String source) =>
-      ClinicalNotes.fromMap(json.decode(source));
 }

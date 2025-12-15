@@ -87,10 +87,13 @@ class ReportViewerScreen extends StatelessWidget {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.SizedBox(height: 10),
-                  pw.Text('Blood Pressure Readings:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                  pw.Text('Blood Pressure Readings:',
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold, fontSize: 14)),
                   pw.SizedBox(height: 5),
                   ...sessionData.treatmentParameters.bloodPressureEntries.map(
-                    (bpEntry) => _buildDetailRow(bpEntry.time, bpEntry.bpValue),
+                    (bpEntry) => _buildDetailRow(
+                        bpEntry.time.toString(), bpEntry.bpValue),
                   ),
                   pw.SizedBox(height: 10),
                 ],

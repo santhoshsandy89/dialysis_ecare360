@@ -52,16 +52,34 @@ class TreatmentParametersPage extends StatefulWidget {
 
 class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
   List<BPEntry> bpEntries = [];
+  bool _isInitializedFromParent = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialBpEntries.isNotEmpty) {
-      for (var entry in widget.initialBpEntries) {
-        bpEntries.add(BPEntry("$entry.time min BP", entry.bpValue));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (bpEntries.isEmpty && widget.initialBpEntries.isEmpty) {
+        _addHour();
       }
-    } else {
-      _addHour(); // Add initial hour if no data
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant TreatmentParametersPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!_isInitializedFromParent && widget.initialBpEntries.isNotEmpty) {
+      for (var entry in bpEntries) {
+        entry.controller.dispose();
+      }
+
+      setState(() {
+        bpEntries = widget.initialBpEntries
+            .map((e) => BPEntry(e.time, e.bpValue))
+            .toList();
+        _isInitializedFromParent = true;
+      });
     }
   }
 
@@ -75,15 +93,16 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
 
   void _addHour() {
     setState(() {
-      final int currentMinutes = bpEntries.length * 15;
+      final int currentMinutes = bpEntries.isEmpty ? 0 : bpEntries.last.minutes;
       for (int i = 0; i < 4; i++) {
         int minutes = currentMinutes + ((i + 1) * 15);
         if (minutes <= 24 * 60) {
-          // Limit to 24 hours (1440 minutes)
-          bpEntries.add(BPEntry("$minutes min BP"));
+          bpEntries.add(BPEntry(minutes));
         }
       }
-      _notifyBpEntriesChanged();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _notifyBpEntriesChanged();
+      });
     });
   }
 
@@ -96,11 +115,24 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
 
   void _notifyBpEntriesChanged() {
     final List<BloodPressureEntry> currentEntries = bpEntries
-        .where((entry) => entry.controller.text.isNotEmpty)
-        .map((entry) => BloodPressureEntry(
-            time: entry.minutes, bpValue: entry.controller.text))
+        .where((e) => e.controller.text.isNotEmpty)
+        .map(
+          (e) => BloodPressureEntry(
+            time: e.minutes,
+            bpValue: e.controller.text,
+          ),
+        )
         .toList();
-    widget.onBpEntriesChanged(currentEntries);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onBpEntriesChanged(currentEntries);
+    });
+  }
+
+  BPEntry _createEntry(int minutes, [String? value]) {
+    final entry = BPEntry(minutes, value);
+    entry.controller.addListener(_notifyBpEntriesChanged);
+    return entry;
   }
 
   @override
@@ -260,7 +292,7 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: rowInput(
-                  bpEntries[i + j].minutes,
+                  "${bpEntries[i + j].minutes} min BP",
                   controller: bpEntries[i + j].controller,
                   readOnly: widget.readOnly,
                   isBPField: true,
@@ -282,7 +314,7 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage> {
 }
 
 class BPEntry {
-  final String minutes;
+  final int minutes;
   final TextEditingController controller;
 
   BPEntry(this.minutes, [String? initialValue])
