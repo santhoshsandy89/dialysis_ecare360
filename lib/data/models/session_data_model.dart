@@ -233,6 +233,42 @@ class TreatmentParameters {
   }
 }
 
+class SerologyResults {
+  final String? hcvResult;
+  final String? hbsagResult;
+  final String? hivResult;
+  final String? hcvRnaResult;
+  final String? pcrResult;
+
+  SerologyResults({
+    this.hcvResult,
+    this.hbsagResult,
+    this.hivResult,
+    this.hcvRnaResult,
+    this.pcrResult,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'hcvResult': hcvResult,
+      'hbsagResult': hbsagResult,
+      'hivResult': hivResult,
+      'hcvRnaResult': hcvRnaResult,
+      'pcrResult': pcrResult,
+    };
+  }
+
+  factory SerologyResults.fromMap(Map<String, dynamic> map) {
+    return SerologyResults(
+      hcvResult: map['hcvResult'],
+      hbsagResult: map['hbsagResult'],
+      hivResult: map['hivResult'],
+      hcvRnaResult: map['hcvRnaResult'],
+      pcrResult: map['pcrResult'],
+    );
+  }
+}
+
 class LaboratoryValues {
   final String preBun;
   final String preCreatinine;
@@ -248,6 +284,7 @@ class LaboratoryValues {
   final String postHaemoglobin;
   final String postSGOT;
   final String postSGPT;
+  final SerologyResults serologyResults;
 
   LaboratoryValues({
     required this.preBun,
@@ -264,6 +301,7 @@ class LaboratoryValues {
     required this.postHaemoglobin,
     required this.postSGOT,
     required this.postSGPT,
+    required this.serologyResults,
   });
 
   Map<String, dynamic> toMap() {
@@ -282,6 +320,7 @@ class LaboratoryValues {
       'postHaemoglobin': postHaemoglobin,
       'postSGOT': postSGOT,
       'postSGPT': postSGPT,
+      'serologyResults': serologyResults.toMap(),
     };
   }
 
@@ -301,6 +340,7 @@ class LaboratoryValues {
       postHaemoglobin: map['postHaemoglobin'] ?? '',
       postSGOT: map['postSGOT'] ?? '',
       postSGPT: map['postSGPT'] ?? '',
+      serologyResults: SerologyResults.fromMap(map['serologyResults'] ?? {}),
     );
   }
 }
