@@ -8,13 +8,14 @@ import 'package:ecare360/data/models/session_data_model.dart';
 import 'package:ecare360/data/models/treatment_model.dart';
 import 'package:ecare360/data/services/local_storage_service.dart';
 import 'package:ecare360/features/home/presentation/providers/local_storage_controller.dart';
-import 'package:ecare360/features/home/presentation/providers/patient_id_provider.dart';
+import 'package:ecare360/features/home/presentation/providers/patient_provider.dart';
 import 'package:ecare360/features/schedule_treatment/data/models/patient.dart';
 import 'package:ecare360/features/session_management/presentation/pages/session_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../home/presentation/providers/patient_id_provider.dart';
 import '../../../session_management/presentation/pages/report_viewer_screen.dart';
 import '../providers/schedule_treatment_provider.dart';
 
@@ -54,8 +55,7 @@ class ScheduleTreatmentSection extends ConsumerStatefulWidget {
 
 class _ScheduleTreatmentSectionState
     extends ConsumerState<ScheduleTreatmentSection> {
-  final _formKey = GlobalKey<FormState>();
-
+  late var _formKey = GlobalKey<FormState>();
   final _mrnNoController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -107,7 +107,20 @@ class _ScheduleTreatmentSectionState
   }
 
   void _showAddPatientModal(BuildContext context, WidgetRef ref) {
+    // 🔹 Reset all controllers and form state
+    _firstNameController.clear();
+    _lastNameController.clear();
+    _dobController.clear();
+    _phoneController.clear();
+    _emailController.clear();
+
+    _selectedPatientMrn = null;
+    _patientBloodType = null;
+    _patientDob = null;
+    _formKey = GlobalKey<FormState>();
+
     final patients = ref.watch(patientIdProvider);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -134,8 +147,7 @@ class _ScheduleTreatmentSectionState
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primary,
                         borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
+                            top: Radius.circular(20)),
                       ),
                       child: Text(
                         "Add New Patient",
@@ -153,31 +165,8 @@ class _ScheduleTreatmentSectionState
                         child: Column(
                           children: [
                             buildPatientSearchDropdown(patients),
-                            /*_buildDropdownField(
-                              'Patient MRN',
-                              _selectedPatientMrn,
-                              patients
-                                  .map((p) => {
-                                        'value': p.id, // real value!
-                                        'display':
-                                            '${p.id} - ${p.username} ${p.lastName}',
-                                      })
-                                  .toList(),
-                              (String? newValue) {
-                                final patient = patients
-                                    .firstWhere((p) => p.id == newValue);
-                                setState(() {
-                                  _selectedPatientMrn = newValue;
-                                  _firstNameController.text = patient.username;
-                                  _lastNameController.text = patient.lastName;
-                                  _phoneController.text = patient.phone;
-                                  _emailController.text = patient.email;
-                                });
-                              },
-                              true,
-                            ),*/
-                            const SizedBox(height: 16),
 
+                            const SizedBox(height: 16),
                             CustomTextField(
                               controller: _firstNameController,
                               labelText: 'First Name',
@@ -185,7 +174,6 @@ class _ScheduleTreatmentSectionState
                                   v!.isEmpty ? "First Name is required" : null,
                             ),
                             const SizedBox(height: 16),
-
                             CustomTextField(
                               controller: _lastNameController,
                               labelText: 'Last Name',
@@ -193,7 +181,6 @@ class _ScheduleTreatmentSectionState
                                   v!.isEmpty ? "Last Name is required" : null,
                             ),
                             const SizedBox(height: 16),
-
                             CustomTextField(
                               controller: _dobController,
                               labelText: "Date of Birth",
@@ -205,7 +192,6 @@ class _ScheduleTreatmentSectionState
                                   : null,
                             ),
                             const SizedBox(height: 16),
-
                             DropdownButtonFormField<BloodType>(
                               value: _patientBloodType,
                               decoration: const InputDecoration(
@@ -216,15 +202,12 @@ class _ScheduleTreatmentSectionState
                                   setState(() => _patientBloodType = v),
                               items: BloodType.values
                                   .map((e) => DropdownMenuItem(
-                                        value: e,
-                                        child: Text(e.displayName),
-                                      ))
+                                      value: e, child: Text(e.displayName)))
                                   .toList(),
                               validator: (v) =>
                                   v == null ? "Blood Type is required" : null,
                             ),
                             const SizedBox(height: 16),
-
                             CustomTextField(
                               controller: _phoneController,
                               labelText: "Phone",
@@ -232,17 +215,13 @@ class _ScheduleTreatmentSectionState
                                   v!.isEmpty ? "Phone is required" : null,
                             ),
                             const SizedBox(height: 16),
-
                             CustomTextField(
                               controller: _emailController,
                               labelText: "Email",
                               validator: (v) {
-                                if (v == null || v.isEmpty) {
-                                  return null;
-                                }
-                                final emailRegex = RegExp(
-                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                );
+                                if (v == null || v.isEmpty) return null;
+                                final emailRegex =
+                                    RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                                 return emailRegex.hasMatch(v)
                                     ? null
                                     : "Invalid email";
@@ -250,7 +229,7 @@ class _ScheduleTreatmentSectionState
                             ),
                             const SizedBox(height: 20),
 
-                            // 🔥 SAVE BUTTON
+                            // 🔥 ADD PATIENT BUTTON
                             CustomButton(
                               text: "Add Patient",
                               icon: Icons.person_add,
@@ -264,8 +243,7 @@ class _ScheduleTreatmentSectionState
                                     );
                                     return;
                                   }
-                                  AppLogger.debug(
-                                      'ADD_PATIENT_MODAL: _selectedPatientMrn: $_selectedPatientMrn');
+
                                   final patient = PatientModel(
                                     mrnNo: _selectedPatientMrn!,
                                     firstName: _firstNameController.text,
@@ -276,12 +254,25 @@ class _ScheduleTreatmentSectionState
                                     email: _emailController.text,
                                   );
 
-                                  // ⭐ SAVE TO SHARED PREFERENCES
+                                  // Save to local storage
                                   await ref
                                       .read(localStorageProvider.notifier)
                                       .addPatient(patient);
 
-                                  Navigator.pop(context, true);
+                                  ref.read(patientProvider.notifier).addPatient(
+                                        PatientModel(
+                                          mrnNo: _selectedPatientMrn!,
+                                          firstName: _firstNameController.text,
+                                          lastName: _lastNameController.text,
+                                          dob: _patientDob.toString(),
+                                          bloodType:
+                                              _patientBloodType.toString(),
+                                          phone: _phoneController.text,
+                                          email: _emailController.text,
+                                        ),
+                                      );
+                                  // Close modal
+                                  Navigator.pop(context, patient);
                                 }
                               },
                             ),
@@ -1053,7 +1044,7 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
               MaterialPageRoute(
                 builder: (_) => SessionManagementScreen(
                   patient: treatment.patient,
-                  treatmentType: treatment.treatmentMainType.name,
+                  treatmentType: treatment.treatmentMainType,
                   scheduledDate: treatment.scheduledDate,
                   initialStatus: SessionStatus.in_progress,
                   initialTabIndex: initialTabIndex,
@@ -1076,7 +1067,7 @@ class _ScheduledTreatmentItem extends ConsumerWidget {
               MaterialPageRoute(
                 builder: (_) => SessionManagementScreen(
                   patient: treatment.patient,
-                  treatmentType: treatment.treatmentMainType.name,
+                  treatmentType: treatment.treatmentMainType,
                   scheduledDate: treatment.scheduledDate,
                   initialStatus: SessionStatus.pending,
                   initialTabIndex: 0,

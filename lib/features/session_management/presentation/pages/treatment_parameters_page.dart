@@ -1,5 +1,6 @@
 import 'package:ecare360/common/widgets/helper_widget.dart';
 import 'package:ecare360/data/models/session_data_model.dart';
+import 'package:ecare360/features/schedule_treatment/presentation/pages/schedule_treatment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -22,6 +23,7 @@ class TreatmentParametersPage extends StatefulWidget {
   final VoidCallback? onNext;
   final VoidCallback? onCancel;
   final bool readOnly;
+  final TreatmentMainType? treatmentType;
 
   const TreatmentParametersPage({
     super.key,
@@ -43,6 +45,7 @@ class TreatmentParametersPage extends StatefulWidget {
     this.onNext,
     this.onCancel,
     this.readOnly = false,
+    this.treatmentType,
   });
 
   @override
@@ -55,7 +58,7 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage>
   List<BPEntry> bpEntries = [];
   bool _isInitializedFromParent = false;
 
-  @override
+  /*@override
   void initState() {
     super.initState();
 
@@ -64,9 +67,57 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage>
         _addHour();
       }
     });
+  }*/
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (bpEntries.isEmpty && widget.initialBpEntries.isEmpty) {
+        final int totalHours = (widget.treatmentType != null &&
+                widget.treatmentType == TreatmentMainType.slud)
+            ? 6
+            : 1;
+        _addMultipleHours(totalHours);
+      }
+    });
+    /*WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.initialBpEntries.isNotEmpty) {
+        bpEntries = _buildFullBpGrid(widget.initialBpEntries);
+        return;
+      }
+
+      if (widget.treatmentType != null &&
+          widget.treatmentType == TreatmentMainType.slud) {
+        _addMultipleHours(6);
+      } else {
+        _addHour();
+      }
+    });*/
   }
 
   @override
+  void didUpdateWidget(covariant TreatmentParametersPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (_isInitializedFromParent || widget.initialBpEntries.isEmpty) return;
+
+    for (var entry in bpEntries) {
+      entry.controller.dispose();
+    }
+
+    setState(() {
+      if (widget.treatmentType == TreatmentMainType.slud) {
+        _restoreSludEntries(widget.initialBpEntries);
+      } else {
+        _initializeBPEntriesFromPreferences(widget.initialBpEntries);
+      }
+
+      _isInitializedFromParent = true;
+    });
+  }
+
+  /*@override
   void didUpdateWidget(covariant TreatmentParametersPage oldWidget) {
     super.didUpdateWidget(oldWidget);
 
@@ -80,7 +131,7 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage>
         _isInitializedFromParent = true;
       });
     }
-  }
+  }*/
 
   @override
   void dispose() {
@@ -103,6 +154,31 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage>
         _notifyBpEntriesChanged();
       });
     });
+  }
+
+  void _initializeBPEntriesFromPreferences(
+    List<BloodPressureEntry> savedEntries,
+  ) {
+    bpEntries.clear();
+
+    if (savedEntries.isEmpty) return;
+
+    final Map<int, String?> valueByMinute = {
+      for (var e in savedEntries) e.time: e.bpValue,
+    };
+
+    final int maxMinute =
+        savedEntries.map((e) => e.time).reduce((a, b) => a > b ? a : b);
+
+    for (int minute = 15; minute <= maxMinute; minute += 15) {
+      bpEntries.add(
+        BPEntry(
+          minute,
+          valueByMinute[minute],
+          _notifyBpEntriesChanged,
+        ),
+      );
+    }
   }
 
   void _removeHour(int startIndex) {
@@ -330,6 +406,43 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage>
     }
 
     return result;
+  }
+
+  void _addMultipleHours(int hours) {
+    setState(() {
+      int startMinutes = bpEntries.isEmpty ? 0 : bpEntries.last.minutes;
+      for (int h = 0; h < hours; h++) {
+        for (int i = 1; i <= 4; i++) {
+          int minutes = startMinutes + (h * 60) + (i * 15);
+          bpEntries.add(
+            BPEntry(minutes, null, _notifyBpEntriesChanged),
+          );
+        }
+      }
+    });
+  }
+
+  void _restoreSludEntries(List<BloodPressureEntry> savedEntries) {
+    // Always build full 6×4 grid
+    bpEntries.clear();
+
+    for (int i = 1; i <= 24; i++) {
+      bpEntries.add(
+        BPEntry(i * 15, null, _notifyBpEntriesChanged),
+      );
+    }
+
+    // Map saved values
+    final Map<int, String?> valueByMinute = {
+      for (var e in savedEntries) e.time: e.bpValue,
+    };
+
+    // Patch values into existing controllers
+    for (var entry in bpEntries) {
+      if (valueByMinute.containsKey(entry.minutes)) {
+        entry.controller.text = valueByMinute[entry.minutes]!;
+      }
+    }
   }
 }
 

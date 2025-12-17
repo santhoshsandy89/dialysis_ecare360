@@ -12,8 +12,13 @@ class PatientNotifier extends StateNotifier<List<PatientModel>> {
   void setPatients(List<PatientModel> patients) {
     state = patients;
   }
+
+  void addPatient(PatientModel patient) {
+    state = [...state, patient]; // append patient
+  }
 }
 
-final patientProvider = StateNotifierProvider<PatientNotifier, List<PatientModel>>((ref) {
+final patientProvider =
+    StateNotifierProvider<PatientNotifier, List<PatientModel>>((ref) {
   return PatientNotifier();
 });

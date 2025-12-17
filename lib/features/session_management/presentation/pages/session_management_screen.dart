@@ -9,9 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../../schedule_treatment/presentation/pages/schedule_treatment_screen.dart';
+
 class SessionManagementScreen extends StatefulWidget {
   final PatientModel patient;
-  final String treatmentType;
+  final TreatmentMainType treatmentType;
   final DateTime scheduledDate;
   final SessionStatus initialStatus;
   final int initialTabIndex;
@@ -436,7 +438,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               ),
               const SizedBox(height: 4),
               Text(
-                "${widget.patient.firstName} • MRN: ${widget.patient.mrnNo} • ${widget.treatmentType} • ${DateFormat('dd MMM yyyy').format(widget.scheduledDate)}",
+                "${widget.patient.firstName} • MRN: ${widget.patient.mrnNo} • ${widget.treatmentType.name} • ${DateFormat('dd MMM yyyy').format(widget.scheduledDate)}",
                 style: TextStyle(
                   color:
                       Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
@@ -511,6 +513,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               needleSizeController: _needleSizeController,
               tmpController: _tmpController,
               initialBpEntries: _bloodPressureEntries,
+              treatmentType: widget.treatmentType,
               onBpEntriesChanged: (newEntries) {
                 setState(() {
                   _bloodPressureEntries = newEntries;
