@@ -8,10 +8,12 @@ import 'package:ecare360/features/session_management/presentation/pages/vital_si
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../schedule_treatment/presentation/pages/schedule_treatment_screen.dart';
+import '../providers/serology_provider.dart';
 
-class SessionManagementScreen extends StatefulWidget {
+class SessionManagementScreen extends ConsumerStatefulWidget {
   final PatientModel patient;
   final TreatmentMainType treatmentType;
   final DateTime scheduledDate;
@@ -28,11 +30,12 @@ class SessionManagementScreen extends StatefulWidget {
   });
 
   @override
-  State<SessionManagementScreen> createState() =>
+  ConsumerState<ConsumerStatefulWidget> createState() =>
       _SessionManagementScreenState();
 }
 
-class _SessionManagementScreenState extends State<SessionManagementScreen>
+class _SessionManagementScreenState
+    extends ConsumerState<SessionManagementScreen>
     with TickerProviderStateMixin {
   // Vital Signs Controllers
   final TextEditingController _preWeightController = TextEditingController();
@@ -201,7 +204,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       _postSGOTController.text = sessionData.laboratoryValues.postSGOT;
       _postSGPTController.text = sessionData.laboratoryValues.postSGPT;
 
-      // ... populate other laboratory values
+      // Initialize _currentLaboratoryValues with loaded data, including Serology
 
       // Clinical Notes
       _machineAlarmsController.text = sessionData.clinicalNotes.machineAlarm;
@@ -270,6 +273,8 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
   }
 
   Future<void> _saveSessionData(SessionStatus statusToSave) async {
+    final serologyResults = ref.read(serologyProvider);
+
     final vitalSigns = VitalSigns(
       preWeight: _preWeightController.text,
       postWeight: _postWeightController.text,
@@ -318,6 +323,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       postHaemoglobin: _postHaemoglobinController.text,
       postSGOT: _postSGOTController.text,
       postSGPT: _postSGPTController.text,
+      serologyResults: serologyResults,
     );
 
     final clinicalNotes = ClinicalNotes(
@@ -381,31 +387,31 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       "Cancel Session?",
       "Are you sure you want to cancel and exit without saving?",
     );
-    if (confirm != null)
+    if (confirm != null) {
       Navigator.pop(context, _currentSessionStatus); // Pop with current status
+    }
   }
 
   Future<SessionStatus?> _showConfirmDialog(
       String title, String message) async {
     return await showDialog<SessionStatus?>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, null), // Cancel dialog
-                child: const Text("No"),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, _currentSessionStatus),
-                // Confirm action, return current status
-                child: const Text("Yes"),
-              ),
-            ],
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null), // Cancel dialog
+            child: const Text("No"),
           ),
-        ) ??
-        null;
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, _currentSessionStatus),
+            // Confirm action, return current status
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -513,7 +519,6 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               needleSizeController: _needleSizeController,
               tmpController: _tmpController,
               initialBpEntries: _bloodPressureEntries,
-              treatmentType: widget.treatmentType,
               onBpEntriesChanged: (newEntries) {
                 setState(() {
                   _bloodPressureEntries = newEntries;
@@ -540,6 +545,9 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               postHaemoglobinController: _postHaemoglobinController,
               postSGOTController: _postSGOTController,
               postSGPTController: _postSGPTController,
+              onLaboratoryValuesChanged: (newLaboratoryValues) {
+                setState(() {});
+              },
               onSave: _onSaveProgressPressed,
               onComplete: _onCompleteSessionPressed,
               onNext: _goToNextTab,

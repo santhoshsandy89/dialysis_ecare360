@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'package:ecare360/features/session_management/presentation/providers/bp_entry_list_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ecare360/data/models/session_data_model.dart';
-import 'package:ecare360/main.dart'; // For sharedPreferencesProvider
 
 class SerologyNotifier extends StateNotifier<SerologyResults> {
   final SharedPreferences _prefs;
@@ -24,57 +24,19 @@ class SerologyNotifier extends StateNotifier<SerologyResults> {
   }
 
   void updateSerologyResult(String key, String? value) {
-    SerologyResults newState;
-    switch (key) {
-      case 'hcvResult':
-        newState = SerologyResults(
-            hcvResult: value,
-            hbsagResult: state.hbsagResult,
-            hivResult: state.hivResult,
-            hcvRnaResult: state.hcvRnaResult,
-            pcrResult: state.pcrResult);
-        break;
-      case 'hbsagResult':
-        newState = SerologyResults(
-            hcvResult: state.hcvResult,
-            hbsagResult: value,
-            hivResult: state.hivResult,
-            hcvRnaResult: state.hcvRnaResult,
-            pcrResult: state.pcrResult);
-        break;
-      case 'hivResult':
-        newState = SerologyResults(
-            hcvResult: state.hcvResult,
-            hbsagResult: state.hbsagResult,
-            hivResult: value,
-            hcvRnaResult: state.hcvRnaResult,
-            pcrResult: state.pcrResult);
-        break;
-      case 'hcvRnaResult':
-        newState = SerologyResults(
-            hcvResult: state.hcvResult,
-            hbsagResult: state.hbsagResult,
-            hivResult: state.hivResult,
-            hcvRnaResult: value,
-            pcrResult: state.pcrResult);
-        break;
-      case 'pcrResult':
-        newState = SerologyResults(
-            hcvResult: state.hcvResult,
-            hbsagResult: state.hbsagResult,
-            hivResult: state.hivResult,
-            hcvRnaResult: state.hcvRnaResult,
-            pcrResult: value);
-        break;
-      default:
-        newState = state; // No change if key is not recognized
-    }
-    state = newState;
+    state = state.copyWith(
+      hcvResult: key == 'hcvResult' ? value : state.hcvResult,
+      hbsagResult: key == 'hbsagResult' ? value : state.hbsagResult,
+      hivResult: key == 'hivResult' ? value : state.hivResult,
+      hcvRnaResult: key == 'hcvRnaResult' ? value : state.hcvRnaResult,
+      pcrResult: key == 'pcrResult' ? value : state.pcrResult,
+    );
     _saveSerologyResults();
   }
 }
 
-final serologyProvider = StateNotifierProvider<SerologyNotifier, SerologyResults>(
+final serologyProvider =
+    StateNotifierProvider<SerologyNotifier, SerologyResults>(
   (ref) {
     final prefs = ref.watch(sharedPreferencesProvider);
     return SerologyNotifier(prefs);

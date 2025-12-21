@@ -132,6 +132,15 @@ class ReportViewerScreen extends StatelessWidget {
     });
   }
 
+  String _formatSerologyResult(String? result) {
+    if (result == null || result.isEmpty) return '-';
+    if (result == 'BinaryResult.positive') return '+ve';
+    if (result == 'BinaryResult.negative') return '-ve';
+    if (result == 'ReactiveResult.reactive') return 'Reactive';
+    if (result == 'ReactiveResult.nonReactive') return 'Non-Reactive';
+    return result; // Fallback for unexpected values
+  }
+
   pw.Widget _buildLaboratoryTable(SessionData data) {
     final l = data.laboratoryValues;
 
@@ -146,6 +155,11 @@ class ReportViewerScreen extends StatelessWidget {
       'Post Haemoglobin': l.postHaemoglobin,
       'Post SGOT': l.postSGOT,
       'Post SGPT': l.postSGPT,
+      'HCV': _formatSerologyResult(l.serologyResults.hcvResult),
+      'HBsAg': _formatSerologyResult(l.serologyResults.hbsagResult),
+      'HIV': _formatSerologyResult(l.serologyResults.hivResult),
+      'HCV RNA': _formatSerologyResult(l.serologyResults.hcvRnaResult),
+      'PCR': _formatSerologyResult(l.serologyResults.pcrResult),
     });
   }
 

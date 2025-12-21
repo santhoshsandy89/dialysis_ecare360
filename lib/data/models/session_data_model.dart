@@ -267,6 +267,22 @@ class SerologyResults {
       pcrResult: map['pcrResult'],
     );
   }
+
+  SerologyResults copyWith({
+    String? hcvResult,
+    String? hbsagResult,
+    String? hivResult,
+    String? hcvRnaResult,
+    String? pcrResult,
+  }) {
+    return SerologyResults(
+      hcvResult: hcvResult ?? this.hcvResult,
+      hbsagResult: hbsagResult ?? this.hbsagResult,
+      hivResult: hivResult ?? this.hivResult,
+      hcvRnaResult: hcvRnaResult ?? this.hcvRnaResult,
+      pcrResult: pcrResult ?? this.pcrResult,
+    );
+  }
 }
 
 class LaboratoryValues {
