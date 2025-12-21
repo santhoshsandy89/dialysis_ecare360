@@ -190,7 +190,6 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage>
 
   void _notifyBpEntriesChanged() {
     final List<BloodPressureEntry> currentEntries = bpEntries
-        .where((e) => e.controller.text.isNotEmpty)
         .map(
           (e) => BloodPressureEntry(
             time: e.minutes,
