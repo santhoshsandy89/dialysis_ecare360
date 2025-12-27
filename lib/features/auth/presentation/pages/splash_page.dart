@@ -207,7 +207,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Beta version 1.0.0',
+                    'Beta version 1.0.2',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.white38,

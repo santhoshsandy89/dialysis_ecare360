@@ -248,6 +248,11 @@ class LaboratoryValues {
   final String postHaemoglobin;
   final String postSGOT;
   final String postSGPT;
+  final String hcv;
+  final String hbsag;
+  final String hiv;
+  final String hcvRna;
+  final String pcr;
 
   LaboratoryValues({
     required this.preBun,
@@ -264,6 +269,11 @@ class LaboratoryValues {
     required this.postHaemoglobin,
     required this.postSGOT,
     required this.postSGPT,
+    this.hcv = '',
+    this.hbsag = '',
+    this.hiv = '',
+    this.hcvRna = '',
+    this.pcr = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -282,6 +292,11 @@ class LaboratoryValues {
       'postHaemoglobin': postHaemoglobin,
       'postSGOT': postSGOT,
       'postSGPT': postSGPT,
+      'hcv': hcv,
+      'hbsag': hbsag,
+      'hiv': hiv,
+      'hcvRna': hcvRna,
+      'pcr': pcr,
     };
   }
 
@@ -301,6 +316,11 @@ class LaboratoryValues {
       postHaemoglobin: map['postHaemoglobin'] ?? '',
       postSGOT: map['postSGOT'] ?? '',
       postSGPT: map['postSGPT'] ?? '',
+      hcv: map['hcv'] ?? '',
+      hbsag: map['hbsag'] ?? '',
+      hiv: map['hiv'] ?? '',
+      hcvRna: map['hcvRna'] ?? '',
+      pcr: map['pcr'] ?? '',
     );
   }
 }

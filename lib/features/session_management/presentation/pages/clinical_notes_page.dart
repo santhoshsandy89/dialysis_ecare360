@@ -34,7 +34,7 @@ class ClinicalNotesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 300),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

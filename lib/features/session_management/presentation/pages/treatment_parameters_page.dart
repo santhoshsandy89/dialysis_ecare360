@@ -73,7 +73,19 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (bpEntries.isEmpty && widget.initialBpEntries.isEmpty) {
+      if (widget.initialBpEntries.isNotEmpty) {
+        // Restore from existing entries
+        setState(() {
+          if (widget.treatmentType == TreatmentMainType.slud) {
+            _restoreSludEntries(widget.initialBpEntries);
+            _isInitializedFromParent = true;
+          } else {
+            _initializeBPEntriesFromPreferences(widget.initialBpEntries);
+            _isInitializedFromParent = true;
+          }
+        });
+      } else if (bpEntries.isEmpty) {
+        // Initialize default empty rows
         final int totalHours = (widget.treatmentType != null &&
                 widget.treatmentType == TreatmentMainType.slud)
             ? 6
@@ -81,19 +93,6 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage>
         _addMultipleHours(totalHours);
       }
     });
-    /*WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.initialBpEntries.isNotEmpty) {
-        bpEntries = _buildFullBpGrid(widget.initialBpEntries);
-        return;
-      }
-
-      if (widget.treatmentType != null &&
-          widget.treatmentType == TreatmentMainType.slud) {
-        _addMultipleHours(6);
-      } else {
-        _addHour();
-      }
-    });*/
   }
 
   @override
@@ -207,7 +206,7 @@ class _TreatmentParametersPageState extends State<TreatmentParametersPage>
   Widget build(BuildContext context) {
     super.build(context);
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 300),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

@@ -1,3 +1,4 @@
+import 'package:ecare360/core/widgets/focus_reveal_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,6 +14,65 @@ Widget sectionTitle(String text) {
   );
 }
 
+class RowInputWidget extends StatefulWidget {
+  final String label;
+  final TextEditingController? controller;
+  final bool readOnly;
+  final String? hintText;
+  final bool isBPField;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+
+  const RowInputWidget({
+    super.key,
+    required this.label,
+    this.controller,
+    this.readOnly = false,
+    this.hintText,
+    this.isBPField = false,
+    this.keyboardType,
+    this.inputFormatters,
+  });
+
+  @override
+  State<RowInputWidget> createState() => _RowInputWidgetState();
+}
+
+class _RowInputWidgetState extends State<RowInputWidget> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: FocusRevealWrapper(
+        focusNode: _focusNode,
+        child: TextField(
+          focusNode: _focusNode,
+          controller: widget.controller,
+          readOnly: widget.readOnly,
+          keyboardType: widget.keyboardType ?? TextInputType.text,
+          inputFormatters: widget.inputFormatters ??
+              (widget.isBPField
+                  ? [FilteringTextInputFormatter.digitsOnly, BPFormatter()]
+                  : null),
+          decoration: InputDecoration(
+            labelText: widget.label,
+            border: const OutlineInputBorder(),
+            hintText: widget.hintText ?? '',
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 Widget rowInput(
   String label, {
   TextEditingController? controller,
@@ -22,22 +82,14 @@ Widget rowInput(
   TextInputType? keyboardType,
   List<TextInputFormatter>? inputFormatters,
 }) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 14),
-    child: TextField(
-      controller: controller,
-      readOnly: readOnly,
-      keyboardType: keyboardType ?? TextInputType.text,
-      inputFormatters: inputFormatters ??
-          (isBPField
-              ? [FilteringTextInputFormatter.digitsOnly, BPFormatter()]
-              : null),
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        hintText: hintText ?? '',
-      ),
-    ),
+  return RowInputWidget(
+    label: label,
+    controller: controller,
+    readOnly: readOnly,
+    hintText: hintText,
+    isBPField: isBPField,
+    keyboardType: keyboardType,
+    inputFormatters: inputFormatters,
   );
 }
 

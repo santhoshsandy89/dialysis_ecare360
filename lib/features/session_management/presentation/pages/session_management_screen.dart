@@ -95,6 +95,13 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
   final TextEditingController _postSGOTController = TextEditingController();
   final TextEditingController _postSGPTController = TextEditingController();
 
+  // Serology State
+  String _hcvResult = '';
+  String _hbsagResult = '';
+  String _hivResult = '';
+  String _hcvRnaResult = '';
+  String _pcrResult = '';
+
   // Clinical Notes Controllers
   final TextEditingController _machineAlarmsController =
       TextEditingController();
@@ -200,6 +207,12 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
           sessionData.laboratoryValues.postHaemoglobin;
       _postSGOTController.text = sessionData.laboratoryValues.postSGOT;
       _postSGPTController.text = sessionData.laboratoryValues.postSGPT;
+
+      _hcvResult = sessionData.laboratoryValues.hcv;
+      _hbsagResult = sessionData.laboratoryValues.hbsag;
+      _hivResult = sessionData.laboratoryValues.hiv;
+      _hcvRnaResult = sessionData.laboratoryValues.hcvRna;
+      _pcrResult = sessionData.laboratoryValues.pcr;
 
       // ... populate other laboratory values
 
@@ -318,6 +331,11 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
       postHaemoglobin: _postHaemoglobinController.text,
       postSGOT: _postSGOTController.text,
       postSGPT: _postSGPTController.text,
+      hcv: _hcvResult,
+      hbsag: _hbsagResult,
+      hiv: _hivResult,
+      hcvRna: _hcvRnaResult,
+      pcr: _pcrResult,
     );
 
     final clinicalNotes = ClinicalNotes(
@@ -417,6 +435,7 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
         statusBarColor: Colors.white, // Dark Green
       ),
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -545,6 +564,17 @@ class _SessionManagementScreenState extends State<SessionManagementScreen>
               onNext: _goToNextTab,
               onCancel: _onCancelPressed,
               readOnly: isSessionCompleted,
+              hcv: _hcvResult,
+              hbsag: _hbsagResult,
+              hiv: _hivResult,
+              hcvRna: _hcvRnaResult,
+              pcr: _pcrResult,
+              onHcvChanged: (val) => setState(() => _hcvResult = val ?? ''),
+              onHbsagChanged: (val) => setState(() => _hbsagResult = val ?? ''),
+              onHivChanged: (val) => setState(() => _hivResult = val ?? ''),
+              onHcvRnaChanged: (val) =>
+                  setState(() => _hcvRnaResult = val ?? ''),
+              onPcrChanged: (val) => setState(() => _pcrResult = val ?? ''),
             ),
             ClinicalNotesPage(
               machineAlarmsController: _machineAlarmsController,

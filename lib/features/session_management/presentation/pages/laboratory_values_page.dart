@@ -22,6 +22,18 @@ class LaboratoryValuesPage extends StatefulWidget {
   final VoidCallback? onCancel;
   final bool readOnly;
 
+  // Serology Props
+  final String hcv;
+  final String hbsag;
+  final String hiv;
+  final String hcvRna;
+  final String pcr;
+  final ValueChanged<String?>? onHcvChanged;
+  final ValueChanged<String?>? onHbsagChanged;
+  final ValueChanged<String?>? onHivChanged;
+  final ValueChanged<String?>? onHcvRnaChanged;
+  final ValueChanged<String?>? onPcrChanged;
+
   const LaboratoryValuesPage({
     super.key,
     required this.preBunController,
@@ -43,6 +55,16 @@ class LaboratoryValuesPage extends StatefulWidget {
     this.onNext,
     this.onCancel,
     this.readOnly = false,
+    this.hcv = '',
+    this.hbsag = '',
+    this.hiv = '',
+    this.hcvRna = '',
+    this.pcr = '',
+    this.onHcvChanged,
+    this.onHbsagChanged,
+    this.onHivChanged,
+    this.onHcvRnaChanged,
+    this.onPcrChanged,
   });
 
   @override
@@ -50,16 +72,35 @@ class LaboratoryValuesPage extends StatefulWidget {
 }
 
 class _LaboratoryValuesPageState extends State<LaboratoryValuesPage> {
-  BinaryResult? hcvResult;
-  BinaryResult? hbsagResult;
-  ReactiveResult? hivResult;
-  ReactiveResult? hcvRnaResult;
-  ReactiveResult? pcrResult;
+  // Helpers to convert String <-> Enum
+  BinaryResult? _parseBinary(String val) {
+    if (val == 'Positive') return BinaryResult.positive;
+    if (val == 'Negative') return BinaryResult.negative;
+    return null;
+  }
+
+  String _binaryToString(BinaryResult? val) {
+    if (val == BinaryResult.positive) return 'Positive';
+    if (val == BinaryResult.negative) return 'Negative';
+    return '';
+  }
+
+  ReactiveResult? _parseReactive(String val) {
+    if (val == 'Reactive') return ReactiveResult.reactive;
+    if (val == 'Non-Reactive') return ReactiveResult.nonReactive;
+    return null;
+  }
+
+  String _reactiveToString(ReactiveResult? val) {
+    if (val == ReactiveResult.reactive) return 'Reactive';
+    if (val == ReactiveResult.nonReactive) return 'Non-Reactive';
+    return '';
+  }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 300),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -134,41 +175,51 @@ class _LaboratoryValuesPageState extends State<LaboratoryValuesPage> {
               const SizedBox(height: 12),
               resultRow<BinaryResult>(
                 label: "HCV",
-                value: hcvResult,
+                value: _parseBinary(widget.hcv),
                 options: BinaryResult.values,
-                optionLabel: (v) => v == BinaryResult.positive ? "+ve" : "-ve",
-                onChanged: (v) => setState(() => hcvResult = v),
+                optionLabel: (v) => v == BinaryResult.positive ? "Positive" : "Negative",
+                onChanged: widget.readOnly
+                    ? (v) {}
+                    : (v) => widget.onHcvChanged?.call(_binaryToString(v)),
               ),
               resultRow<BinaryResult>(
                 label: "HBsAg",
-                value: hbsagResult,
+                value: _parseBinary(widget.hbsag),
                 options: BinaryResult.values,
-                optionLabel: (v) => v == BinaryResult.positive ? "+ve" : "-ve",
-                onChanged: (v) => setState(() => hbsagResult = v),
+                optionLabel: (v) => v == BinaryResult.positive ? "Positive" : "Negative",
+                onChanged: widget.readOnly
+                    ? (v) {}
+                    : (v) => widget.onHbsagChanged?.call(_binaryToString(v)),
               ),
               resultRow<ReactiveResult>(
                 label: "HIV",
-                value: hivResult,
+                value: _parseReactive(widget.hiv),
                 options: ReactiveResult.values,
                 optionLabel: (v) =>
                     v == ReactiveResult.reactive ? "Reactive" : "Non-Reactive",
-                onChanged: (v) => setState(() => hivResult = v),
+                onChanged: widget.readOnly
+                    ? (v) {}
+                    : (v) => widget.onHivChanged?.call(_reactiveToString(v)),
               ),
               resultRow<ReactiveResult>(
                 label: "HCV RNA",
-                value: hcvRnaResult,
+                value: _parseReactive(widget.hcvRna),
                 options: ReactiveResult.values,
                 optionLabel: (v) =>
                     v == ReactiveResult.reactive ? "Reactive" : "Non-Reactive",
-                onChanged: (v) => setState(() => hcvRnaResult = v),
+                onChanged: widget.readOnly
+                    ? (v) {}
+                    : (v) => widget.onHcvRnaChanged?.call(_reactiveToString(v)),
               ),
               resultRow<ReactiveResult>(
                 label: "PCR",
-                value: pcrResult,
+                value: _parseReactive(widget.pcr),
                 options: ReactiveResult.values,
                 optionLabel: (v) =>
                     v == ReactiveResult.reactive ? "Reactive" : "Non-Reactive",
-                onChanged: (v) => setState(() => pcrResult = v),
+                onChanged: widget.readOnly
+                    ? (v) {}
+                    : (v) => widget.onPcrChanged?.call(_reactiveToString(v)),
               ),
             ],
           ),

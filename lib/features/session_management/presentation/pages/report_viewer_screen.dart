@@ -14,6 +14,24 @@ class ReportViewerScreen extends StatelessWidget {
   const ReportViewerScreen(
       {super.key, required this.patientId, required this.sessionDate});
 
+  bool _isAbnormalBp(String? bpValue) {
+    if (bpValue == null || bpValue.isEmpty) return false;
+    final parts = bpValue.split('/');
+    if (parts.length != 2) return false;
+
+    try {
+      final systolic = int.parse(parts[0].trim());
+      final diastolic = int.parse(parts[1].trim());
+
+      if (systolic < 90 || systolic > 140) return true;
+      if (diastolic < 60 || diastolic > 90) return true;
+      
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<SessionData?> _fetchSessionData() async {
     return await LocalStorageService.fetchSessionData(patientId, sessionDate);
   }
@@ -146,6 +164,11 @@ class ReportViewerScreen extends StatelessWidget {
       'Post Haemoglobin': l.postHaemoglobin,
       'Post SGOT': l.postSGOT,
       'Post SGPT': l.postSGPT,
+      'HCV': l.hcv,
+      'HBsAg': l.hbsag,
+      'HIV': l.hiv,
+      'HCV RNA': l.hcvRna,
+      'PCR': l.pcr,
     });
   }
 
@@ -198,15 +221,22 @@ class ReportViewerScreen extends StatelessWidget {
                   .toList(),
             ),
             pw.TableRow(
-              children: mins
-                  .map((m) => pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text(map[m] ?? '-',
-                            textAlign: pw.TextAlign.center,
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      ))
-                  .toList(),
+              children: mins.map((m) {
+                final val = map[m];
+                final text = (val == null || val.isEmpty) ? '-' : val;
+                final isAbnormal = _isAbnormalBp(val);
+                return pw.Padding(
+                  padding: const pw.EdgeInsets.all(4),
+                  child: pw.Text(
+                    text,
+                    textAlign: pw.TextAlign.center,
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      color: isAbnormal ? PdfColors.red : PdfColors.black,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),
